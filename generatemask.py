@@ -30,4 +30,5 @@ for s_id in scene_id:
     savepath_rgb = os.path.join(imagepath, s_id, "transparent_mask_rgb.png")
     output.save(savepath)
     output_rgb.save(savepath_rgb)
+    print(savepath)
     break
