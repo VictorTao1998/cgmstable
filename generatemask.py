@@ -31,4 +31,3 @@ for s_id in scene_id:
     output.save(savepath)
     output_rgb.save(savepath_rgb)
     print(savepath)
-    break
