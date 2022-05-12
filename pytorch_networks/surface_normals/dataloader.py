@@ -4,7 +4,6 @@ import os
 import glob
 import sys
 from PIL import Image
-import Imath
 import numpy as np
 
 import torch
