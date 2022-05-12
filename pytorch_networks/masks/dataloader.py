@@ -16,7 +16,6 @@ import imgaug as ia
 
 from utils import utils
 sys.path.append('../..')
-import api.utils as api_utils
 
 
 class SurfaceNormalsDataset(Dataset):

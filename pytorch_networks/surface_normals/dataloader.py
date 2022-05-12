@@ -16,7 +16,6 @@ import imageio
 
 import torch.nn.functional as F
 
-from utils.utils import exr_loader
 
 
 class SurfaceNormalsDataset(Dataset):

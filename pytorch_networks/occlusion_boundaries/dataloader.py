@@ -5,7 +5,6 @@ import os
 import glob
 from PIL import Image
 import numpy as np
-import imageio
 
 import torch
 from torch.utils.data import Dataset
