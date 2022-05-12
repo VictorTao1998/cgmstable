@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as ndimage
 import copy
 
-labelpath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/"
-imagepath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/"
+labelpath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/"
+imagepath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/"
 trasparent_id = [3,7,9,13,14,16]
 
 scene_id = os.listdir(imagepath)
@@ -101,4 +101,3 @@ for id in scene_id:
     savepath = os.path.join(imagepath, id, "outline.png")
     edge_img.save(savepath)
     print(savepath)
-    break

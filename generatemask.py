@@ -5,8 +5,8 @@ import os
 import copy
 import matplotlib.pyplot as plt
 
-labelpath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/"
-imagepath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/"
+labelpath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/"
+imagepath = "/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/"
 trasparent_id = [3,7,9,13,14,16]
 
 scene_id = os.listdir(imagepath)
