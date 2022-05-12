@@ -23,14 +23,13 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
 
+import yaml
 import dataloader
 import dataloader_matterport
 import dataloader_scannet
 import loss_functions
 from modeling import deeplab
 from utils import utils
-
-import yaml
 
 ###################### Load Config File #############################
 parser = argparse.ArgumentParser(description='Run training of outlines prediction model')
@@ -86,6 +85,7 @@ writer.add_text('Config', string, global_step=None)
 
 ###################### DataLoader #############################
 # Train Dataset - Create a dataset object for each dataset in our list, Concatenate datasets, select subset for training
+"""
 augs_train = iaa.Sequential([
     # Geometric Augs
     iaa.Resize({
@@ -146,13 +146,20 @@ input_only = [
     "simplex-blend", "add", "mul", "hue", "sat", "norm", "gray", "motion-blur", "gaus-blur", "add-element",
     "mul-element", "guas-noise", "lap-noise", "dropout", "cdropout"
 ]
+"""
 
+dataset = config.train.datasetsTestSynthetic[0]
+db_test_synthetic = dataloader.MessytableDataset(dataset)
+db_val_list = False
+db_test_list = False
+db_test_synthetic_list = True
+
+"""
 db_synthetic_lst = []
 if config.train.datasetsTrain is not None:
     for dataset in config.train.datasetsTrain:
         if dataset.images:
-            db_synthetic = dataloader.SurfaceNormalsDataset(cfg=dataset,
-                                                            input_dir=dataset.images,
+            db_synthetic = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
                                                             label_dir=dataset.labels,
                                                             transform=augs_train,
                                                             input_only=input_only)
@@ -190,8 +197,7 @@ db_val_list = []
 if config.train.datasetsVal is not None:
     for dataset in config.train.datasetsVal:
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
-                                                  input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
                                                   label_dir=dataset.labels,
                                                   transform=augs_test,
                                                   input_only=None)
@@ -230,8 +236,7 @@ if config.train.datasetsTestReal is not None:
     for dataset in config.train.datasetsTestReal:
         if dataset.images:
             mask_dir = dataset.masks if hasattr(dataset, 'masks') and dataset.masks else ''
-            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
-                                                  input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
                                                   label_dir=dataset.labels,
                                                   mask_dir=mask_dir,
                                                   transform=augs_test,
@@ -239,14 +244,14 @@ if config.train.datasetsTestReal is not None:
             db_test_list.append(db)
     if db_test_list:
         db_test = torch.utils.data.ConcatDataset(db_test_list)
-
+"""
+"""
 # Test Dataset - Synthetic
 db_test_synthetic_list = []
 if config.train.datasetsTestSynthetic is not None:
     for dataset in config.train.datasetsTestSynthetic:
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
-                                                  input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
                                                   label_dir=dataset.labels,
                                                   transform=augs_test,
                                                   input_only=None)
@@ -275,6 +280,8 @@ if db_test_list:
                             shuffle=False,
                             num_workers=config.train.numWorkers,
                             drop_last=True)
+"""
+
 if db_test_synthetic_list:
     assert (config.train.testBatchSize <= len(db_test_synthetic)), \
         ('testBatchSize ({}) cannot be more than the ' +
@@ -427,9 +434,10 @@ for epoch in range(START_EPOCH, END_EPOCH):
     print('Train:')
     print('=' * 10)
 
+    # Update Learning Rate Scheduler
     
-
     # split scannet and matterport dataset for  random selection of data
+    """
     db_train_list = []
     if config.train.datasetsTrain is not None:
         if config.train.datasetsTrain[0].images:
@@ -473,12 +481,17 @@ for epoch in range(START_EPOCH, END_EPOCH):
             loaderScannet = iter(trainLoaderScannet)
 
     db_train = torch.utils.data.ConcatDataset(db_train_list)
+    """
+    dataset = config.train.datasetsTrain[0]
+    db_train = dataloader.MessytableDataset(dataset)
     trainLoader = DataLoader(db_train,
                              batch_size=config.train.batchSize,
                              shuffle=True,
                              num_workers=config.train.numWorkers,
                              drop_last=True,
                              pin_memory=True)
+
+
 
     model.train()
 
@@ -489,8 +502,9 @@ for epoch in range(START_EPOCH, END_EPOCH):
         total_iter_num += 1
 
         # Get data
-        if config.train.batchSizeMatterport == 0 and config.train.batchSizeScannet == 0:
-            inputs, labels, masks = batch
+        #if config.train.batchSizeMatterport == 0 and config.train.batchSizeScannet == 0:
+        inputs, labels, masks = batch
+        """
         else:
             inputs_t, labels_t, masks_t = batch
             inputs_m, labels_m = next(loaderMatterport)
@@ -498,6 +512,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
             inputs = torch.cat([inputs_t, inputs_m, inputs_s], dim=0)
             labels = torch.cat([labels_t, labels_m, labels_s], dim=0)
             masks = torch.cat([masks_t, torch.ones_like(masks_t), torch.ones_like(masks_t)], dim=0)
+        """
 
         if config.train.model == 'refinenet':
             labels_resized = resize_tensor(labels, int(labels.shape[2] / 4), int(labels.shape[3] / 4))
@@ -562,7 +577,6 @@ for epoch in range(START_EPOCH, END_EPOCH):
             grid_image = utils.create_grid_image(inputs, output.float(), labels, max_num_images_to_save=16)
             writer.add_image('Train', grid_image, total_iter_num)
 
-    # Update Learning Rate Scheduler
     if config.train.lrScheduler == 'StepLR':
         lr_scheduler.step()
     elif config.train.lrScheduler == 'ReduceLROnPlateau':
@@ -586,6 +600,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
                                         lr=lr_,
                                         momentum=float(config.train.optimSgd.momentum),
                                         weight_decay=float(config.train.optimSgd.weight_decay))
+
 
     # Log Epoch Loss
     num_samples = (len(trainLoader))

@@ -211,6 +211,7 @@ class DRN(nn.Module):
             x = self.bn1(x)
             x = self.relu(x)
         elif self.arch == 'D':
+            #print(x.shape)
             x = self.layer0(x)
 
         x = self.layer1(x)

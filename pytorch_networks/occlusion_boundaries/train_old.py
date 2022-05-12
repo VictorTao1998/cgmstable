@@ -7,6 +7,7 @@ import io
 import shutil
 import argparse
 from multiprocessing import Process
+import yaml
 
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -19,7 +20,6 @@ import torch
 import torch.nn as nn
 import imgaug as ia
 from imgaug import augmenters as iaa
-import yaml
 
 from modeling import deeplab
 import dataloader
@@ -62,6 +62,7 @@ writer.add_text('Config', string, global_step=None)
 
 ###################### DataLoader #############################
 # Train Dataset - Create a dataset object for each dataset in our list, Concatenate datasets, select subset for training
+"""
 augs_train = iaa.Sequential([
     # Geometric Augs
     iaa.Resize({
@@ -123,71 +124,37 @@ input_only = [
     "simplex-blend", "add", "mul", "hue", "sat", "norm", "gray", "motion-blur", "gaus-blur", "add-element",
     "mul-element", "guas-noise", "lap-noise", "dropout", "cdropout", "cdropout_black"
 ]
-
+"""
 db_train_list = []
-for dataset in config.train.datasetsTrain:
-    db = dataloader.OutlinesDataset(cfg=dataset,
-                                    input_dir=dataset.images,
-                                    label_dir=dataset.labels,
-                                    transform=augs_train,
-                                    input_only=input_only)
-    train_size = int(config.train.percentageDataForTraining * len(db))
-    db = torch.utils.data.Subset(db, range(train_size))
-    db_train_list.append(db)
+dataset = config.train.datasetsTrain[0]
 
-db_train = torch.utils.data.ConcatDataset(db_train_list)
+db_train = dataloader.MessytableDataset(dataset)
 
 # Validation Dataset
+"""
 augs_test = iaa.Sequential([
     iaa.Resize({
         "height": config.train.imgHeight,
         "width": config.train.imgWidth
     }, interpolation='nearest'),
 ])
+"""
+#db_val_list = []
+dataset = config.train.datasetsTestSynthetic[0]
+db_val = dataloader.MessytableDataset(dataset)
 
-db_val_list = []
-if config.train.datasetsVal is not None:
-    for dataset in config.train.datasetsVal:
-        if dataset.images:
-            db = dataloader.OutlinesDataset(cfg=dataset,
-                                            input_dir=dataset.images,
-                                            label_dir=dataset.labels,
-                                            transform=augs_test,
-                                            input_only=None)
-            train_size = int(config.train.percentageDataForValidation * len(db))
-            db = torch.utils.data.Subset(db, range(train_size))
-            db_val_list.append(db)
-
-if db_val_list:
-    db_val = torch.utils.data.ConcatDataset(db_val_list)
+#if db_val_list:
+#    db_val = torch.utils.data.ConcatDataset(db_val_list)
 
 # Test Dataset - Real
-db_test_list = []
-if config.train.datasetsTestReal is not None:
-    for dataset in config.train.datasetsTestReal:
-        if dataset.images:
-            db = dataloader.OutlinesDataset(cfg=dataset,
-                                            input_dir=dataset.images,
-                                            label_dir=dataset.labels,
-                                            transform=augs_test,
-                                            input_only=None)
-            db_test_list.append(db)
-if db_test_list:
-    db_test = torch.utils.data.ConcatDataset(db_test_list)
+#db_test_list = []
+db_test = dataloader.MessytableDataset(dataset)
 
 # Test Dataset - Synthetic
-db_test_synthetic_list = []
-if config.train.datasetsTestSynthetic is not None:
-    for dataset in config.train.datasetsTestSynthetic:
-        if dataset.images:
-            db = dataloader.OutlinesDataset(cfg=dataset,
-                                            input_dir=dataset.images,
-                                            label_dir=dataset.labels,
-                                            transform=augs_test,
-                                            input_only=None)
-            db_test_synthetic_list.append(db)
-if db_test_synthetic_list:
-    db_test_synthetic = torch.utils.data.ConcatDataset(db_test_synthetic_list)
+db_test_synthetic = dataloader.MessytableDataset(dataset)
+db_val_list = False
+db_test_list = False
+db_test_synthetic_list = True
 
 # Create dataloaders
 # NOTE: Calculation of statistics like epoch_loss depend on the param drop_last being True. They calculate total num

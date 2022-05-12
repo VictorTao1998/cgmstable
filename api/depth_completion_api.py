@@ -337,27 +337,27 @@ class DepthToDepthCompletion(object):
                 pass
 
         # Save Input Image
-        input_image_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['input-image']['postfix']
+        input_image_filename = files_prefix + self.FOLDER_MAP['input-image']['postfix']
         input_image_filename = os.path.join(input_image_dir, input_image_filename)
         imageio.imwrite(input_image_filename, self.input_image)
 
         # Save Ground Truth depth and point cloud.
-        gt_depth_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['gt-depth']['postfix']
+        gt_depth_filename = files_prefix + self.FOLDER_MAP['gt-depth']['postfix']
         gt_depth_filename = os.path.join(gt_depth_dir, gt_depth_filename)
         utils.exr_saver(gt_depth_filename, self.depth_gt, ndim=3)
 
-        gt_ptcloud_filename = ('{:09d}'.format(files_prefix) + self.FOLDER_MAP['gt-point-cloud']['postfix'])
+        gt_ptcloud_filename = (files_prefix + self.FOLDER_MAP['gt-point-cloud']['postfix'])
         gt_ptcloud_filename = os.path.join(gt_ptcloud_dir, gt_ptcloud_filename)
         xyz_points, rgb_points = utils._get_point_cloud(self.input_image, self.depth_gt, self.fx, self.fy, self.cx,
                                                         self.cy)
         self.estimate_normals_write_ptcloud(gt_ptcloud_filename, xyz_points, self.outputImgHeight, self.outputImgWidth)
 
         # Save Orig input depth and point cloud
-        input_depth_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['orig-input-depth']['postfix']
+        input_depth_filename = files_prefix + self.FOLDER_MAP['orig-input-depth']['postfix']
         input_depth_filename = os.path.join(orig_input_depth_dir, input_depth_filename)
         utils.exr_saver(input_depth_filename, self.orig_input_depth, ndim=3)
 
-        input_ptcloud_filename = ('{:09d}'.format(files_prefix) + self.FOLDER_MAP['orig-input-point-cloud']['postfix'])
+        input_ptcloud_filename = (files_prefix + self.FOLDER_MAP['orig-input-point-cloud']['postfix'])
         input_ptcloud_filename = os.path.join(orig_input_ptcloud_dir, input_ptcloud_filename)
         # utils.write_point_cloud(input_ptcloud_filename, self.input_image, self.orig_input_depth, self.fx, self.fy,
         #                         self.cx, self.cy)
@@ -367,37 +367,44 @@ class DepthToDepthCompletion(object):
                                             self.outputImgWidth)
 
         # Save input depth and point cloud
-        input_depth_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['input-depth']['postfix']
+        input_depth_filename = files_prefix + self.FOLDER_MAP['input-depth']['postfix']
         input_depth_filename = os.path.join(input_depth_dir, input_depth_filename)
         utils.exr_saver(input_depth_filename, self.input_depth, ndim=3)
 
-        input_ptcloud_filename = ('{:09d}'.format(files_prefix) + self.FOLDER_MAP['input-point-cloud']['postfix'])
-        input_ptcloud_filename = os.path.join(input_ptcloud_dir, input_ptcloud_filename)
-        utils.write_point_cloud(input_ptcloud_filename, self.input_image, self.input_depth, self.fx, self.fy, self.cx,
-                                self.cy)
+        #input_ptcloud_filename = ('{:09d}'.format(files_prefix) + self.FOLDER_MAP['input-point-cloud']['postfix'])
+        #input_ptcloud_filename = os.path.join(input_ptcloud_dir, input_ptcloud_filename)
+        #utils.write_point_cloud(input_ptcloud_filename, self.input_image, self.input_depth, self.fx, self.fy, self.cx,
+        #                        self.cy)
 
         # Save output depth and point cloud
-        output_depth_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['output-depth']['postfix']
+        output_depth_filename = files_prefix + self.FOLDER_MAP['output-depth']['postfix']
         output_depth_filename = os.path.join(output_depth_dir, output_depth_filename)
         utils.exr_saver(output_depth_filename, self.output_depth, ndim=3)
+        print(np.amax(self.output_depth))
+        pred_d = (self.output_depth*1000).astype(np.int32)
+        pred_d = Image.fromarray(pred_d)
+        pred_d = pred_d.convert('I')
+        output_depth_ori_filename = files_prefix + '.png'
+        output_depth_ori_filename = os.path.join(output_depth_dir, output_depth_ori_filename)
+        pred_d.save(output_depth_ori_filename)
 
-        output_ptcloud_filename = ('{:09d}'.format(files_prefix) + self.FOLDER_MAP['output-point-cloud']['postfix'])
-        output_ptcloud_filename = os.path.join(output_ptcloud_dir, output_ptcloud_filename)
-        utils.write_point_cloud(output_ptcloud_filename, self.surface_normals_rgb, self.output_depth, self.fx, self.fy,
-                                self.cx, self.cy)
+        #output_ptcloud_filename = ('{:09d}'.format(files_prefix) + self.FOLDER_MAP['output-point-cloud']['postfix'])
+        #output_ptcloud_filename = os.path.join(output_ptcloud_dir, output_ptcloud_filename)
+        #utils.write_point_cloud(output_ptcloud_filename, self.surface_normals_rgb, self.output_depth, self.fx, self.fy,
+        #                        self.cx, self.cy)
 
         # Store Masks
-        mask_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['masks']['postfix']
+        mask_filename = files_prefix + self.FOLDER_MAP['masks']['postfix']
         mask_filename = os.path.join(masks_dir, mask_filename)
         imageio.imwrite(mask_filename, self.mask_predicted)
 
         # Store Normals
-        normal_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['normals']['postfix']
+        normal_filename = files_prefix + self.FOLDER_MAP['normals']['postfix']
         normal_filename = os.path.join(normals_dir, normal_filename)
         imageio.imwrite(normal_filename, self.surface_normals_rgb)
 
         # Store Outlines
-        outline_filename = '{:09d}'.format(files_prefix) + self.FOLDER_MAP['outlines']['postfix']
+        outline_filename = files_prefix + self.FOLDER_MAP['outlines']['postfix']
         outline_filename = os.path.join(outlines_dir, outline_filename)
         imageio.imwrite(outline_filename, self.occlusion_weight_rgb)
 
@@ -419,16 +426,16 @@ class DepthToDepthCompletion(object):
         gt_depth_rgb = utils.depth2rgb(self.depth_gt, min_depth=min_depth, max_depth=max_depth, color_mode=COLOR_MAP)
 
         # Store input-output depth RGB
-        gt_depth_filename = '{:09d}'.format(files_prefix) + '-gt-depth-rgb.png'
+        gt_depth_filename = files_prefix + '-gt-depth-rgb.png'
         gt_depth_filename = os.path.join(gt_depth_dir, gt_depth_filename)
         imageio.imwrite(gt_depth_filename, gt_depth_rgb)
-        input_depth_filename = '{:09d}'.format(files_prefix) + '-input-depth-rgb.png'
+        input_depth_filename = files_prefix + '-input-depth-rgb.png'
         input_depth_filename = os.path.join(orig_input_depth_dir, input_depth_filename)
         imageio.imwrite(input_depth_filename, orig_input_depth_rgb)
-        input_depth_filename = '{:09d}'.format(files_prefix) + '-modified-input-depth-rgb.png'
+        input_depth_filename = files_prefix + '-modified-input-depth-rgb.png'
         input_depth_filename = os.path.join(input_depth_dir, input_depth_filename)
         imageio.imwrite(input_depth_filename, input_depth_rgb)
-        output_depth_filename = '{:09d}'.format(files_prefix) + '-output-depth-rgb.png'
+        output_depth_filename = files_prefix + '-output-depth-rgb.png'
         output_depth_filename = os.path.join(output_depth_dir, output_depth_filename)
         imageio.imwrite(output_depth_filename, output_depth_rgb)
 
@@ -437,10 +444,10 @@ class DepthToDepthCompletion(object):
         error_output_depth = np.abs(self.output_depth - self.orig_input_depth) * DEPTH_SCALING_M_TO_CM
         mask = (self.input_depth != 0.0)
         error_output_depth = np.ma.masked_array(error_output_depth, mask=mask)
-        error_output_depth = round(error_output_depth.mean(), 4)
+        error_output_depth = np.round(error_output_depth.mean(), 4)
         error_filtered_output_depth = np.abs(self.filtered_output_depth - self.orig_input_depth) * DEPTH_SCALING_M_TO_CM
         error_filtered_output_depth = np.ma.masked_array(error_filtered_output_depth, mask=mask)
-        error_filtered_output_depth = round(error_filtered_output_depth.mean(), 4)
+        error_filtered_output_depth = np.round(error_filtered_output_depth.mean(), 4)
 
         # Write error onto output depth rgb image
         # font = cv2.FONT_HERSHEY_SIMPLEX
@@ -465,7 +472,7 @@ class DepthToDepthCompletion(object):
         grid_image = np.concatenate((grid_image1, grid_image2), 0)
 
         path_result_viz = os.path.join(results_viz_dir,
-                                       '{:09d}'.format(files_prefix) + self.FOLDER_MAP['result-viz']['postfix'])
+                                       files_prefix + self.FOLDER_MAP['result-viz']['postfix'])
         imageio.imwrite(path_result_viz, grid_image)
 
         return error_output_depth, error_filtered_output_depth
@@ -803,6 +810,8 @@ class DepthToDepthCompletion(object):
                                                  smoothness_weight=smoothness_weight,
                                                  tangent_weight=tangent_weight)
 
+        #print(self.output_depth.shape, np.amax(self.output_depth), type(self.output_depth))
+        #self.output_depth = self.output_depth*1000
         # Filter Output Depth
         # See: https://docs.opencv.org/3.0-beta/modules/imgproc/doc/filtering.html#bilateralfilter
         if self.d > 0:
@@ -889,7 +898,7 @@ class DepthToDepthCompletion(object):
 
         gt = torch.from_numpy(gt)
         pred = torch.from_numpy(pred)
-        mask = torch.from_numpy(mask).byte()
+        mask = torch.from_numpy(mask).bool()
 
         gt = gt[mask]
         pred = pred[mask]

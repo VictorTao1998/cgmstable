@@ -15,6 +15,8 @@ from imgaug import augmenters as iaa
 import imgaug as ia
 import imageio
 
+import torch.nn.functional as F
+
 from utils.utils import exr_loader
 
 
@@ -37,8 +39,9 @@ class SurfaceNormalsDataset(Dataset):
 
     def __init__(
             self,
+            cfg,
             input_dir,
-            label_dir='',
+            label_dir='aaaa',
             mask_dir='',
             transform=None,
             input_only=None,
@@ -59,10 +62,10 @@ class SurfaceNormalsDataset(Dataset):
         self._extension_input = ['-transparent-rgb-img.jpg', '-rgb.jpg', '-input-img.jpg']  # The file extension of input images
         self._extension_label = ['-cameraNormals.exr', '-normals.exr']
         self._extension_mask = ['-mask.png']
-        self._create_lists_filenames(self.images_dir, self.labels_dir, self.masks_dir)
+        self.img_L, self.img_depth_l, self.img_meta, self.img_label = self._create_lists_filenames(cfg)
 
     def __len__(self):
-        return len(self._datalist_input)
+        return len(self.img_L)
 
     def __getitem__(self, index):
         '''Returns an item from the dataset at the given index. If no labels directory has been specified,
@@ -77,14 +80,20 @@ class SurfaceNormalsDataset(Dataset):
         '''
 
         # Open input imgs
-        image_path = self._datalist_input[index]
+        image_path = self.img_L[index]
         _img = Image.open(image_path).convert('RGB')
+        _img = _img.resize([960,540], resample=Image.BILINEAR)
         _img = np.array(_img)
+
+
 
         # Open labels
         if self.labels_dir:
-            label_path = self._datalist_label[index]
-            _label = exr_loader(label_path, ndim=3)  # (3, H, W)
+            label_path = self.img_label[index]
+            #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
+            _label = np.loadtxt(label_path)
+            _label = np.reshape(_label,[540,960,3])
+            _label = _label.transpose((2, 0, 1))
 
         if self.masks_dir:
             mask_path = self._datalist_mask[index]
@@ -102,7 +111,7 @@ class SurfaceNormalsDataset(Dataset):
                 _label[:, mask] = 0.0
 
                 _label = _label.transpose((1, 2, 0))  # To Shape: (H, W, 3)
-                _label = det_tf.augment_image(_label, hooks=ia.HooksImages(activator=self._activator_masks))
+                #_label = det_tf.augment_image(_label, hooks=ia.HooksImages(activator=self._activator_masks))
                 _label = _label.transpose((2, 0, 1))  # To Shape: (3, H, W)
 
             if self.masks_dir:
@@ -121,11 +130,18 @@ class SurfaceNormalsDataset(Dataset):
             _mask = _mask[..., np.newaxis]
             _mask_tensor = transforms.ToTensor()(_mask)
         else:
+            #print('mask generated')
+            img_depth_l = np.array(Image.open(self.img_depth_l[index])) / 1000  # convert from mm to m
+            img_depth_l = torch.tensor(img_depth_l, dtype=torch.float32).unsqueeze(0) 
+            depth_l = F.interpolate(img_depth_l.unsqueeze(0), (540, 960), mode='nearest',
+                                        recompute_scale_factor=False)
+            _mask_tensor = torch.clone((depth_l > 0) & (depth_l < 1.25)).detach().squeeze(0)
             _mask_tensor = torch.ones((1, _img_tensor.shape[1], _img_tensor.shape[2]), dtype=torch.float32)
+
 
         return _img_tensor, _label_tensor, _mask_tensor
 
-    def _create_lists_filenames(self, images_dir, labels_dir, masks_dir):
+    def _create_lists_filenames(self, cfg):
         '''Creates a list of filenames of images and labels each in dataset
         The label at index N will match the image at index N.
 
@@ -140,46 +156,19 @@ class SurfaceNormalsDataset(Dataset):
             ValueError: Number of images and labels do not match
         '''
 
-        assert os.path.isdir(images_dir), 'Dataloader given images directory that does not exist: "%s"' % (images_dir)
-        for ext in self._extension_input:
-            imageSearchStr = os.path.join(images_dir, '*' + ext)
-            imagepaths = sorted(glob.glob(imageSearchStr))
-            self._datalist_input = self._datalist_input + imagepaths
+        with open(cfg.split_file, 'r') as f:
+            prefix = [line.strip() for line in f]
 
-        numImages = len(self._datalist_input)
-        if numImages == 0:
-            raise ValueError('No images found in given directory. Searched in dir: {} '.format(images_dir))
+        np.random.shuffle(prefix)
 
-        if labels_dir:
-            assert os.path.isdir(labels_dir), ('Dataloader given labels directory that does not exist: "%s"' %
-                                               (labels_dir))
-            for ext in self._extension_label:
-                labelSearchStr = os.path.join(labels_dir, '*' + ext)
-                labelpaths = sorted(glob.glob(labelSearchStr))
-                self._datalist_label = self._datalist_label + labelpaths
+        img_L = [os.path.join(cfg.images, p, cfg.image_name) for p in prefix]
+        img_depth_l = [os.path.join(cfg.depth, p, cfg.depth_name) for p in prefix]
 
-            numLabels = len(self._datalist_label)
-            if numLabels == 0:
-                raise ValueError('No labels found in given directory. Searched for {}'.format(imageSearchStr))
-            if numImages != numLabels:
-                raise ValueError('The number of images and labels do not match. Please check data,' +
-                                 'found {} images and {} labels in dirs:\n'.format(numImages, numLabels) +
-                                 'images: {}\nlabels: {}\n'.format(images_dir, labels_dir))
-        if masks_dir:
-            assert os.path.isdir(masks_dir), ('Dataloader given masks directory that does not exist: "%s"' %
-                                               (masks_dir))
-            for ext in self._extension_mask:
-                maskSearchStr = os.path.join(masks_dir, '*' + ext)
-                maskpaths = sorted(glob.glob(maskSearchStr))
-                self._datalist_mask = self._datalist_mask + maskpaths
+        img_meta = [os.path.join(cfg.depth, p, cfg.meta_name) for p in prefix]
+        img_label = [os.path.join(cfg.images, p, cfg.label_name) for p in prefix]
 
-            numMasks = len(self._datalist_mask)
-            if numMasks == 0:
-                raise ValueError('No masks found in given directory. Searched for {}'.format(imageSearchStr))
-            if numImages != numMasks:
-                raise ValueError('The number of images and masks do not match. Please check data,' +
-                                 'found {} images and {} masks in dirs:\n'.format(numImages, numMasks) +
-                                 'images: {}\nmasks: {}\n'.format(images_dir, masks_dir))
+
+        return img_L, img_depth_l, img_meta, img_label
 
     def _activator_masks(self, images, augmenter, parents, default):
         '''Used with imgaug to help only apply some augmentations to images and not labels

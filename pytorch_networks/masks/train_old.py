@@ -12,6 +12,7 @@ from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from termcolor import colored
 import oyaml
+import yaml
 from attrdict import AttrDict
 import numpy as np
 from torch.utils.data import DataLoader
@@ -19,7 +20,7 @@ import torch
 import torch.nn as nn
 import imgaug as ia
 from imgaug import augmenters as iaa
-import yaml
+import torch.nn.functional as F
 
 from modeling import deeplab
 import dataloader
@@ -35,7 +36,7 @@ with open(CONFIG_FILE_PATH) as fd:
     config_yaml = oyaml.load(fd, Loader=yaml.FullLoader)  # Returns an ordered dict. Used for printing
 
 config = AttrDict(config_yaml)
-# print(colored('Config being used for training:\n{}\n\n'.format(oyaml.dump(config_yaml)), 'green'))
+print(colored('Config being used for training:\n{}\n\n'.format(oyaml.dump(config_yaml)), 'green'))
 
 ###################### Logs (TensorBoard)  #############################
 # Create a new directory to save logs
@@ -62,6 +63,7 @@ writer.add_text('Config', string, global_step=None)
 
 ###################### DataLoader #############################
 # Train Dataset - Create a dataset object for each dataset in our list, Concatenate datasets, select subset for training
+"""
 augs_train = iaa.Sequential([
     # Geometric Augs
     iaa.Resize({
@@ -69,8 +71,8 @@ augs_train = iaa.Sequential([
         "width": config.train.imgWidth
     }, interpolation='nearest'),
     iaa.Fliplr(0.5),
-    # iaa.Flipud(0.5),
-    # iaa.Rot90((0, 4)),
+    iaa.Flipud(0.5),
+    iaa.Rot90((0, 4)),
 
     # Bright Patches
     iaa.Sometimes(
@@ -123,71 +125,49 @@ input_only = [
     "simplex-blend", "add", "mul", "hue", "sat", "norm", "gray", "motion-blur", "gaus-blur", "add-element",
     "mul-element", "guas-noise", "lap-noise", "dropout", "cdropout", "cdropout_black"
 ]
+"""
+#db_train_list = []
 
-db_train_list = []
-for dataset in config.train.datasetsTrain:
-    db = dataloader.OutlinesDataset(cfg=dataset,
-                                    input_dir=dataset.images,
-                                    label_dir=dataset.labels,
-                                    transform=augs_train,
-                                    input_only=input_only)
-    train_size = int(config.train.percentageDataForTraining * len(db))
-    db = torch.utils.data.Subset(db, range(train_size))
-    db_train_list.append(db)
+        # TODO: Change name of dataset from "SurfaceNormalsDataset" to something appropriate.
+dataset = config.train.datasetsTrain[0]
+#print(dataset[0].split_file)
+db_train = dataloader.MessytableDataset(dataset)
 
-db_train = torch.utils.data.ConcatDataset(db_train_list)
+
 
 # Validation Dataset
+"""
 augs_test = iaa.Sequential([
     iaa.Resize({
         "height": config.train.imgHeight,
         "width": config.train.imgWidth
     }, interpolation='nearest'),
 ])
+"""
+#db_val_list = []
+dataset = config.train.datasetsTestSynthetic[0]
+db_val = dataloader.MessytableDataset(dataset)
+#train_size = int(config.train.percentageDataForValidation * len(db))
+#db = torch.utils.data.Subset(db, range(train_size))
 
-db_val_list = []
-if config.train.datasetsVal is not None:
-    for dataset in config.train.datasetsVal:
-        if dataset.images:
-            db = dataloader.OutlinesDataset(cfg=dataset,
-                                            input_dir=dataset.images,
-                                            label_dir=dataset.labels,
-                                            transform=augs_test,
-                                            input_only=None)
-            train_size = int(config.train.percentageDataForValidation * len(db))
-            db = torch.utils.data.Subset(db, range(train_size))
-            db_val_list.append(db)
 
-if db_val_list:
-    db_val = torch.utils.data.ConcatDataset(db_val_list)
+#if db_val_list:
+#    db_val = torch.utils.data.ConcatDataset(db_val_list)
 
 # Test Dataset - Real
-db_test_list = []
-if config.train.datasetsTestReal is not None:
-    for dataset in config.train.datasetsTestReal:
-        if dataset.images:
-            db = dataloader.OutlinesDataset(cfg=dataset,
-                                            input_dir=dataset.images,
-                                            label_dir=dataset.labels,
-                                            transform=augs_test,
-                                            input_only=None)
-            db_test_list.append(db)
-if db_test_list:
-    db_test = torch.utils.data.ConcatDataset(db_test_list)
+#db_test_list = []
+
+db_test = dataloader.MessytableDataset(dataset)
+
 
 # Test Dataset - Synthetic
-db_test_synthetic_list = []
-if config.train.datasetsTestSynthetic is not None:
-    for dataset in config.train.datasetsTestSynthetic:
-        if dataset.images:
-            db = dataloader.OutlinesDataset(cfg=dataset,
-                                            input_dir=dataset.images,
-                                            label_dir=dataset.labels,
-                                            transform=augs_test,
-                                            input_only=None)
-            db_test_synthetic_list.append(db)
-if db_test_synthetic_list:
-    db_test_synthetic = torch.utils.data.ConcatDataset(db_test_synthetic_list)
+#db_test_synthetic_list = []
+
+db_test_synthetic = dataloader.MessytableDataset(dataset)
+db_val_list = False
+db_test_list = False
+db_test_synthetic_list = True
+
 
 # Create dataloaders
 # NOTE: Calculation of statistics like epoch_loss depend on the param drop_last being True. They calculate total num
@@ -244,9 +224,8 @@ elif config.train.model == 'drn':
     model = deeplab.DeepLab(num_classes=config.train.numClasses, backbone='drn', sync_bn=True,
                             freeze_bn=False)  # output stride is 8 for drn
 else:
-    raise ValueError(
-        'Invalid model "{}" in config file. Must be one of ["unet", "deeplab_xception", "deeplab_resnet"]'.format(
-            config.train.model))
+    raise ValueError('Invalid model "{}" in config file. Must be one of ["deeplab_xception", "deeplab_resnet"]'.format(
+        config.train.model))
 
 if config.train.continueTraining:
     print('Transfer Learning enabled. Model State to be loaded from a prev checkpoint...')
@@ -263,6 +242,11 @@ if config.train.continueTraining:
         # print('From Checkpoint: Last Epoch Loss:', CHECKPOINT['epoch_loss'], '\n\n')
 
         model.load_state_dict(CHECKPOINT['model_state_dict'])
+    elif 'state_dict' in CHECKPOINT:
+        # original author deeplab checkpoint
+        CHECKPOINT['state_dict'].pop('decoder.last_conv.8.weight')
+        CHECKPOINT['state_dict'].pop('decoder.last_conv.8.bias')
+        model.load_state_dict(CHECKPOINT['state_dict'], strict=False)  #'model_state_dict'
     else:
         # Old checkpoint containing only model's state_dict()
         model.load_state_dict(CHECKPOINT)
@@ -284,15 +268,23 @@ if config.train.model == 'unet':
     criterion = nn.CrossEntropyLoss(reduction='sum')
 
 elif config.train.model == 'deeplab_xception' or config.train.model == 'deeplab_resnet' or config.train.model == 'drn':
-    optimizer = torch.optim.SGD(model.parameters(),
-                                lr=float(config.train.optimSgd.learningRate),
+    optimizer = torch.optim.SGD(model.parameters(), lr=float(config.train.optimSgd.learningRate),
                                 momentum=float(config.train.optimSgd.momentum),
                                 weight_decay=float(config.train.optimSgd.weight_decay))
-    # criterion = utils.cross_entropy2d
-    criterion = utils.FocalLoss
+    # optimizer = torch.optim.Adam(model.parameters(),
+    #                               lr=config.train.optimAdam.learningRate,
+    #                               weight_decay=config.train.optimAdam.weightDecay)
+    criterion = utils.cross_entropy2d
 
 if not config.train.lrScheduler:
     pass
+elif config.train.lrScheduler == 'CyclicLR':
+    lr_scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer,
+                                                     base_lr=config.train.lrSchedulerCyclic.base_lr,
+                                                     max_lr=config.train.lrSchedulerCyclic.max_lr,
+                                                     step_size_up=config.train.lrSchedulerCyclic.step_size_up,
+                                                     step_size_down=config.train.lrSchedulerCyclic.step_size_down,
+                                                     mode='triangular')
 elif config.train.lrScheduler == 'StepLR':
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
                                                    step_size=config.train.lrSchedulerStep.step_size,
@@ -364,6 +356,10 @@ for epoch in range(START_EPOCH, END_EPOCH):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
+        labels = F.interpolate(labels, (540, 960), mode='nearest',
+                             recompute_scale_factor=False).type(torch.int)
+
+
         # Forward + Backward Prop
         optimizer.zero_grad()
         torch.set_grad_enabled(True)
@@ -375,9 +371,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
         if config.train.model == 'unet':
             loss = criterion(outputs, labels.long().squeeze(1))
         elif config.train.model == 'deeplab_xception' or config.train.model == 'deeplab_resnet' or config.train.model == 'drn':
-            weight = torch.tensor([1.0, 5.0, 3.0], dtype=torch.float32)
-            # weight = weight.to(device)
-            loss = criterion(outputs.cpu(), labels.cpu(), weight=weight)
+            loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
 
@@ -398,8 +392,6 @@ for epoch in range(START_EPOCH, END_EPOCH):
         lr_scheduler.step()
     elif config.train.lrScheduler == 'ReduceLROnPlateau':
         lr_scheduler.step(epoch_loss)
-    elif config.train.lrScheduler == 'lr_poly':
-        pass
 
     # Log Epoch Loss
     epoch_loss = running_loss / (len(trainLoader))
@@ -407,7 +399,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
     print('\nTrain Epoch Loss: {:.4f}'.format(epoch_loss))
 
     # Log mIoU
-    miou = total_iou / ((len(trainLoader)) * config.train.batchSize)
+    miou = total_iou / len(trainLoader.dataset)
     writer.add_scalar('data/Train mIoU', miou, total_iter_num)
     print('Train mIoU: {:.4f}'.format(miou))
 
@@ -422,7 +414,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
         grid_image = utils.create_grid_image(inputs.detach().cpu(),
                                              outputs.detach().cpu(),
                                              labels.detach().cpu(),
-                                             max_num_images_to_save=3)
+                                             max_num_images_to_save=15)
         writer.add_image('Train', grid_image, total_iter_num)
 
     # Save the model checkpoint every N epochs
@@ -460,15 +452,14 @@ for epoch in range(START_EPOCH, END_EPOCH):
             labels = labels.to(device)
 
             with torch.no_grad():
-                outputs = model(inputs)
+                outputs = model.forward(inputs)
 
-            # loss = criterion(outputs, labels.long().squeeze(1))
-            if config.train.model == 'unet':
-                loss = criterion(outputs, labels, reduction='sum')
-            elif config.train.model == 'deeplab_xception' or config.train.model == 'deeplab_resnet' or config.train.model == 'drn':
-                weight = torch.tensor([1.0, 5.0, 3.0], dtype=torch.float32)
-                loss = criterion(outputs.cpu(), labels.cpu(), weight=weight)
-                # loss /= config.train.batchSize
+            loss = criterion(outputs, labels.long().squeeze(1))
+            # if config.train.model == 'unet':
+            #     loss = criterion(outputs, labels, reduction='sum')
+            # elif config.train.model == 'deeplab_xception' or config.train.model == 'deeplab_resnet':
+            #     loss = criterion(outputs, labels, reduction='sum')
+            #     loss /= config.train.batchSize
 
             running_loss += loss.item()
 
@@ -488,16 +479,16 @@ for epoch in range(START_EPOCH, END_EPOCH):
         print('\nValidation Epoch Loss: {:.4f}'.format(epoch_loss))
 
         # Log mIoU
-        miou = total_iou / ((len(validationLoader)) * config.train.validationBatchSize)
+        miou = total_iou / len(validationLoader.dataset)
         writer.add_scalar('data/Validation mIoU', miou, total_iter_num)
         print('Validation mIoU: {:.4f}'.format(miou))
 
         # Log 10 images every N epochs
         if (epoch % config.train.saveImageInterval) == 0:
             grid_image = utils.create_grid_image(inputs.detach().cpu(),
-                                                outputs.detach().cpu(),
-                                                labels.detach().cpu(),
-                                                max_num_images_to_save=10)
+                                                 outputs.detach().cpu(),
+                                                 labels.detach().cpu(),
+                                                 max_num_images_to_save=10)
             writer.add_image('Validation', grid_image, total_iter_num)
 
     ###################### Test Cycle - Real #############################
@@ -507,21 +498,44 @@ for epoch in range(START_EPOCH, END_EPOCH):
 
         model.eval()
 
+        total_iou = 0
+        img_tensor_list = []
+        output_tensor_list = []
+        label_tensor_list = []
         for iter_num, sample_batched in enumerate(tqdm(testLoader)):
             inputs, labels = sample_batched
 
             # Forward pass of the mini-batch
             inputs = inputs.to(device)
+            labels = labels.to(device)
 
             with torch.no_grad():
-                outputs = model(inputs)
+                outputs = model.forward(inputs)
+
+            running_loss += loss.item()
+
+            predictions = torch.max(outputs, 1)[1]
+            _total_iou, per_class_iou, num_images_per_class = utils.get_iou(predictions,
+                                                                            labels,
+                                                                            n_classes=config.train.numClasses)
+            total_iou += _total_iou
+
+            # Add each batch of images, to be saved together later
+            img_tensor_list.append(inputs.detach().cpu())
+            output_tensor_list.append(outputs.detach().cpu())
+            label_tensor_list.append(labels.detach().cpu())
+
+        # Log mIoU
+        miou = total_iou / len(testLoader.dataset)
+        writer.add_scalar('data/Test Real mIoU', miou, total_iter_num)
+        print('Test Real mIoU: {:.4f}'.format(miou))
 
         # Log 30 images every N epochs
         if (epoch % config.train.saveImageInterval) == 0:
-            grid_image = utils.create_grid_image(inputs.detach().cpu(),
-                                                 outputs.detach().cpu(),
-                                                 labels.detach().cpu(),
-                                                 max_num_images_to_save=30)
+            grid_image = utils.create_grid_image(torch.cat(img_tensor_list, dim=0),
+                                                 torch.cat(output_tensor_list, dim=0),
+                                                 torch.cat(label_tensor_list, dim=0),
+                                                 max_num_images_to_save=200)
             writer.add_image('Testing', grid_image, total_iter_num)
 
     ###################### Test Cycle - Synthetic #############################
@@ -540,16 +554,19 @@ for epoch in range(START_EPOCH, END_EPOCH):
             inputs = inputs.to(device)
             labels = labels.to(device)
 
-            with torch.no_grad():
-                outputs = model(inputs)
+            labels = F.interpolate(labels, (540, 960), mode='nearest',
+                             recompute_scale_factor=False).type(torch.int)
 
-            # loss = criterion(outputs, labels.long().squeeze(1))
-            if config.train.model == 'unet':
-                loss = criterion(outputs, labels, reduction='sum')
-            elif config.train.model == 'deeplab_xception' or config.train.model == 'deeplab_resnet' or config.train.model == 'drn':
-                weight = torch.tensor([1.0, 5.0, 3.0], dtype=torch.float32)
-                loss = criterion(outputs.cpu(), labels.cpu(), weight=weight)
-                # loss /= config.train.batchSize
+            with torch.no_grad():
+                outputs = model.forward(inputs)
+
+            print(outputs.shape, labels.long().squeeze(1).shape)
+            loss = criterion(outputs, labels.long().squeeze(1))
+            # if config.train.model == 'unet':
+            #     loss = criterion(outputs, labels, reduction='sum')
+            # elif config.train.model == 'deeplab_xception' or config.train.model == 'deeplab_resnet':
+            #     loss = criterion(outputs, labels, reduction='sum')
+            #     loss /= config.train.batchSize
 
             running_loss += loss.item()
 
@@ -569,7 +586,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
         print('\Test Synthetic Epoch Loss: {:.4f}'.format(epoch_loss))
 
         # Log mIoU
-        miou = total_iou / ((len(testSyntheticLoader)) * config.train.testBatchSize)
+        miou = total_iou / len(testSyntheticLoader.dataset)
         writer.add_scalar('data/Test Synthetic mIoU', miou, total_iter_num)
         print('Test Synthetic mIoU: {:.4f}'.format(miou))
 

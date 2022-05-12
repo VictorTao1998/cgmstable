@@ -19,6 +19,7 @@ import torch
 import torch.nn as nn
 import imgaug as ia
 from imgaug import augmenters as iaa
+import yaml
 
 from modeling import deeplab
 import dataloader
@@ -31,7 +32,7 @@ args = parser.parse_args()
 
 CONFIG_FILE_PATH = args.configFile
 with open(CONFIG_FILE_PATH) as fd:
-    config_yaml = oyaml.load(fd)  # Returns an ordered dict. Used for printing
+    config_yaml = oyaml.load(fd, Loader=yaml.FullLoader)  # Returns an ordered dict. Used for printing
 
 config = AttrDict(config_yaml)
 print(colored('Config being used for training:\n{}\n\n'.format(oyaml.dump(config_yaml)), 'green'))
@@ -125,9 +126,10 @@ input_only = [
 
 db_train_list = []
 if config.train.datasetsTrain is not None:
-    for dataset in config.train.datasetsTrain:
+    for dataset in config.train.datasetsTrain: 
         # TODO: Change name of dataset from "SurfaceNormalsDataset" to something appropriate.
-        db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
+        db = dataloader.SurfaceNormalsDataset(cfg=dataset,
+                                              input_dir=dataset.images,
                                               label_dir=dataset.labels,
                                               transform=augs_train,
                                               input_only=input_only)
@@ -149,7 +151,8 @@ db_val_list = []
 if config.train.datasetsVal is not None:
     for dataset in config.train.datasetsVal:
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
+                                                  input_dir=dataset.images,
                                                   label_dir=dataset.labels,
                                                   transform=augs_test,
                                                   input_only=None)
@@ -165,7 +168,8 @@ db_test_list = []
 if config.train.datasetsTestReal is not None:
     for dataset in config.train.datasetsTestReal:
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
+                                                  input_dir=dataset.images,
                                                   label_dir=dataset.labels,
                                                   transform=augs_test,
                                                   input_only=None)
@@ -178,7 +182,8 @@ db_test_synthetic_list = []
 if config.train.datasetsTestSynthetic is not None:
     for dataset in config.train.datasetsTestSynthetic:
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
+                                                  input_dir=dataset.images,
                                                   label_dir=dataset.labels,
                                                   transform=augs_test,
                                                   input_only=None)
@@ -360,10 +365,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
     print('=' * 10)
 
     # Update Learning Rate Scheduler
-    if config.train.lrScheduler == 'StepLR':
-        lr_scheduler.step()
-    elif config.train.lrScheduler == 'ReduceLROnPlateau':
-        lr_scheduler.step(epoch_loss)
+    
 
     model.train()
 
@@ -403,6 +405,11 @@ for epoch in range(START_EPOCH, END_EPOCH):
         # Print loss every 20 Batches
         # if (iter_num % 20) == 0:
         #     print('Epoch{} Batch{} BatchLoss: {:.4f} '.format(epoch, iter_num, loss.item()))
+
+    if config.train.lrScheduler == 'StepLR':
+        lr_scheduler.step()
+    elif config.train.lrScheduler == 'ReduceLROnPlateau':
+        lr_scheduler.step(epoch_loss)
 
     # Log Epoch Loss
     epoch_loss = running_loss / (len(trainLoader))

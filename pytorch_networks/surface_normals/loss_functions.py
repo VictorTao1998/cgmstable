@@ -101,6 +101,7 @@ def metric_calculator_batch(input_vec, target_vec, mask=None):
     loss_deg = loss_rad * (180.0 / math.pi)
 
     # Mask out all invalid pixels and calc mean, median
+    mask_valid_pixels = mask_valid_pixels.type(torch.bool)
     loss_deg = loss_deg[mask_valid_pixels]
     loss_deg_mean = loss_deg.mean()
     loss_deg_median = loss_deg.median()

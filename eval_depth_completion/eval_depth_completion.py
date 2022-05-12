@@ -25,6 +25,8 @@ import torch
 import cv2
 import numpy as np
 
+from PIL import Image
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run eval of depth completion on synthetic data')
     parser.add_argument('-c', '--configFile', required=True, help='Path to config yaml file', metavar='path/to/config')
@@ -105,6 +107,7 @@ if __name__ == '__main__':
     depth_file_list = []
     segmentation_masks_list = []
     gt_depth_file_list = []
+    """
     for dataset in config.files:
         EXT_COLOR_IMG = ['-transparent-rgb-img.jpg', '-rgb.jpg']  #'-rgb.jpg' - includes normals-rgb.jpg
         EXT_DEPTH_IMG = ['-depth-rectified.exr', '-transparent-depth-img.exr']
@@ -129,6 +132,21 @@ if __name__ == '__main__':
             assert len(rgb_file_list) == len(gt_depth_file_list), (
                 'number of rgb ({}) and gt depth ({}) are not equal'.format(len(rgb_file_list),
                                                                             len(gt_depth_file_list)))
+    """
+
+    with open('/media/jianyu/dataset/messy-table-dataset/realTest.txt', 'r') as f:
+        prefix = [line.strip() for line in f]
+        np.random.shuffle(prefix)
+    
+    rgb_file = '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
+    depth_file = '/media/jianyu/dataset/eval/all_test_sim_data/01_13_2022_02_15_33_/pred_depth'
+    seg_file = '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
+    gt_depth_file = '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
+
+    rgb_file_list = [os.path.join(rgb_file, p, '0128_irL_denoised_half.png') for p in prefix]
+    depth_file_list = [os.path.join(depth_file, p + '.png') for p in prefix]
+    segmentation_masks_list = [os.path.join(seg_file, p, 'transparent_mask.png') for p in prefix]
+    gt_depth_file_list = [os.path.join(gt_depth_file, p, 'depthL.png') for p in prefix]
 
     print('Total Num of rgb_files:', len(rgb_file_list))
     print('Total Num of depth_files:', len(depth_file_list))
@@ -155,9 +173,11 @@ if __name__ == '__main__':
     for i in range(len(rgb_file_list)):
 
         # Run Depth Completion
-        color_img = imageio.imread(rgb_file_list[i])
-        input_depth = api_utils.exr_loader(depth_file_list[i], ndim=1)
+        color_img = np.array(Image.open(rgb_file_list[i]).convert('RGB'))
+        #input_depth = api_utils.exr_loader(depth_file_list[i], ndim=1)
+        input_depth = (np.array(Image.open(depth_file_list[i])) / 1000).astype(np.float32)
 
+        #print(color_img.dtype, input_depth.dtype, input_depth.shape, color_img.shape)
         # NOTE: If no gt_depth present, it means the depth itself is gt_depth (syn data). We mask out all objects in input depth so depthcomplete can't cheat.
         if len(gt_depth_file_list) == 0 and len(segmentation_masks_list) > 0:
             if args.maskInputDepth:
@@ -188,9 +208,9 @@ if __name__ == '__main__':
 
         # If Ground Truth depth folder is given, use that to compute errors. In case of Synthetic data, input depth is GT depth.
         if gt_depth_file_list:
-            depth_gt = api_utils.exr_loader(gt_depth_file_list[i], ndim=1)
+            depth_gt = (np.array(Image.open(gt_depth_file_list[i])) / 1000).astype(np.float32)
         else:
-            depth_gt = api_utils.exr_loader(depth_file_list[i], ndim=1)
+            depth_gt = (np.array(Image.open(depth_file_list[i])) / 1000).astype(np.float32)
 
         depth_gt = cv2.resize(depth_gt, (outputImgWidth, outputImgHeight), interpolation=cv2.INTER_NEAREST)
         depth_gt[np.isnan(depth_gt)] = 0
@@ -228,7 +248,7 @@ if __name__ == '__main__':
         # Save Results of Depth Completion
         error_output_depth, error_filtered_output_depth = depthcomplete.store_depth_completion_outputs(
             root_dir=results_dir,
-            files_prefix=i,
+            files_prefix=prefix[i],
             min_depth=config.depthVisualization.minDepth,
             max_depth=config.depthVisualization.maxDepth)
         # print('    Mean Absolute Error in output depth (if Synthetic Data)   = {:.4f} cm'.format(error_output_depth))

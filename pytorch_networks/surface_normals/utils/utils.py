@@ -55,6 +55,7 @@ def create_grid_image(inputs, outputs, labels, max_num_images_to_save=3):
     mask_invalid_pixels = (torch.cat([mask_invalid_pixels] * 3, dim=1)).byte()
 
     label_tensor_rgb = normal_to_rgb(label_tensor)
+    mask_invalid_pixels = mask_invalid_pixels.type(torch.bool)
     label_tensor_rgb[mask_invalid_pixels] = 0
 
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
@@ -71,6 +72,8 @@ def create_grid_image(inputs, outputs, labels, max_num_images_to_save=3):
                                         reverse_scale=False)
         loss_rad_rgb[idx] = error_rgb.transpose(2, 0, 1) / 255
     loss_rad_rgb = torch.from_numpy(loss_rad_rgb)
+
+    
     loss_rad_rgb[mask_invalid_pixels] = 0
 
     mask_invalid_pixels_rgb = torch.ones_like(img_tensor)

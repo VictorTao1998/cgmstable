@@ -37,6 +37,7 @@ class SurfaceNormalsDataset(Dataset):
     """
 
     def __init__(self,
+                 cfg,
                  input_dir='data/datasets/train/milk-bottles-train/resized-files/preprocessed-rgb-imgs',
                  label_dir='',
                  transform=None,
@@ -55,10 +56,11 @@ class SurfaceNormalsDataset(Dataset):
         self._datalist_label = []  # Variable containing list of all ground truth filenames in dataset
         self._extension_input = ['-transparent-rgb-img.jpg', '-rgb.jpg']  # The file extension of input images
         self._extension_label = '-mask.png'  # The file extension of labels
-        self._create_lists_filenames(self.images_dir, self.labels_dir)
+        self.img_L, self.img_depth_l, self.img_meta, self.img_label = self._create_lists_filenames(cfg)
+        #print(len(self.img_L))
 
     def __len__(self):
-        return len(self._datalist_input)
+        return len(self.img_L)
 
     def __getitem__(self, index):
         '''Returns an item from the dataset at the given index. If no labels directory has been specified,
@@ -73,7 +75,7 @@ class SurfaceNormalsDataset(Dataset):
         '''
 
         # Open input imgs
-        image_path = self._datalist_input[index]
+        image_path = self.img_L[index]
         # for surface normals as input
         # _img = api_utils.exr_loader(image_path, ndim=3)  # (3, H, W)
         # _img = (_img + 1) / 2
@@ -84,12 +86,12 @@ class SurfaceNormalsDataset(Dataset):
 
         # Open labels
         if self.labels_dir:
-            label_path = self._datalist_label[index]
+            label_path = self.img_label[index]
             # _label = Image.open(label_path).convert('L')
             mask = imageio.imread(label_path)
             # _label = np.array(_label)[..., np.newaxis]
             _label = np.zeros(mask.shape, dtype=np.uint8)
-            _label[mask >= 100] = 1
+            _label[mask > 0] = 1
 
 
         # Apply image augmentations and convert to Tensor
@@ -111,7 +113,7 @@ class SurfaceNormalsDataset(Dataset):
 
         return _img_tensor, _label_tensor
 
-    def _create_lists_filenames(self, images_dir, labels_dir):
+    def _create_lists_filenames(self, cfg):
         '''Creates a list of filenames of images and labels each in dataset
         The label at index N will match the image at index N.
 
@@ -125,27 +127,19 @@ class SurfaceNormalsDataset(Dataset):
             ValueError: Number of images and labels do not match
         '''
 
-        assert os.path.isdir(images_dir), 'Dataloader given images directory that does not exist: "%s"' % (images_dir)
-        for ext in self._extension_input:
-            imageSearchStr = os.path.join(images_dir, '*' + ext)
-            imagepaths = sorted(glob.glob(imageSearchStr))
-            self._datalist_input = self._datalist_input + imagepaths
-        numImages = len(self._datalist_input)
-        if numImages == 0:
-            raise ValueError('No images found in given directory. Searched for {}'.format(imageSearchStr))
+        with open(cfg.split_file, 'r') as f:
+            prefix = [line.strip() for line in f]
 
-        if labels_dir:
-            assert os.path.isdir(labels_dir), ('Dataloader given labels directory that does not exist: "%s"'
-                                               % (labels_dir))
-            labelSearchStr = os.path.join(labels_dir, '*' + self._extension_label)
-            labelpaths = sorted(glob.glob(labelSearchStr))
-            self._datalist_label = labelpaths
-            numLabels = len(self._datalist_label)
-            if numLabels == 0:
-                raise ValueError('No labels found in given directory. Searched for {}'.format(imageSearchStr))
-            if numImages != numLabels:
-                raise ValueError('The number of images and labels do not match. Please check data,\
-                                found {} images and {} labels' .format(numImages, numLabels))
+        np.random.shuffle(prefix)
+
+        img_L = [os.path.join(cfg.images, p, cfg.image_name) for p in prefix]
+        img_depth_l = [os.path.join(cfg.depth, p, cfg.depth_name) for p in prefix]
+
+        img_meta = [os.path.join(cfg.depth, p, cfg.meta_name) for p in prefix]
+        img_label = [os.path.join(cfg.images, p, cfg.label_name) for p in prefix]
+
+
+        return img_L, img_depth_l, img_meta, img_label
 
     def _activator_masks(self, images, augmenter, parents, default):
         '''Used with imgaug to help only apply some augmentations to images and not labels
