@@ -90,7 +90,7 @@ class MessytableDataset(Dataset):
         img_depth_l = np.array(Image.open(self.img_depth_l[idx])) / 1000  # convert from mm to m
         #image_pcd = o3d.io.read_point_cloud(self.img_label[idx])
         #poin = np.array(image_pcd.points)
-        surface_normal = np.loadtxt(self.img_label[idx])
+        surface_normal = np.array(Image.open(self.img_label[idx]))
         #if poin.shape[0] != 518400:
         #    print(self.img_label[idx])
         surface_normal = np.reshape(surface_normal,[540,960,3])
