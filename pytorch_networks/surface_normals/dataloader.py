@@ -89,7 +89,7 @@ class SurfaceNormalsDataset(Dataset):
         if self.labels_dir:
             label_path = self.img_label[index]
             #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
-            _label = np.loadtxt(label_path)
+            _label = np.array(Image.open(label_path))
             _label = np.reshape(_label,[540,960,3])
             _label = _label.transpose((2, 0, 1))
 
