@@ -120,7 +120,7 @@ class SurfaceNormalsDataset(Dataset):
         _img_tensor = transforms.ToTensor()(_img)
 
         if self.labels_dir:
-            _label_tensor = torch.from_numpy(_label)
+            _label_tensor = torch.from_numpy(_label, dtype=torch.float32)
             _label_tensor = nn.functional.normalize(_label_tensor, p=2, dim=0)
         else:
             _label_tensor = torch.zeros((3, _img_tensor.shape[1], _img_tensor.shape[2]), dtype=torch.float32)
