@@ -4,7 +4,6 @@ from __future__ import print_function, division
 import os
 import glob
 from PIL import Image
-import Imath
 import numpy as np
 
 import torch
