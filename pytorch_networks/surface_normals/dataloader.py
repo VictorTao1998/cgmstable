@@ -90,7 +90,8 @@ class SurfaceNormalsDataset(Dataset):
             label_path = self.img_label[index]
             #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
             _label = Image.open(label_path).resize([960,540], resample=Image.NEAREST)
-            _label = np.array(_label)
+            _label = np.array(_label).astype(np.float)
+            print(_label.shape, _label[0,0,0])
             _label = np.reshape(_label,[540,960,3])
             _label = _label.transpose((2, 0, 1))
 
@@ -120,7 +121,7 @@ class SurfaceNormalsDataset(Dataset):
         _img_tensor = transforms.ToTensor()(_img)
 
         if self.labels_dir:
-            _label_tensor = torch.from_numpy(_label, dtype=torch.float32)
+            _label_tensor = torch.from_numpy(_label)
             _label_tensor = nn.functional.normalize(_label_tensor, p=2, dim=0)
         else:
             _label_tensor = torch.zeros((3, _img_tensor.shape[1], _img_tensor.shape[2]), dtype=torch.float32)
