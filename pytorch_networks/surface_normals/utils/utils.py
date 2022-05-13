@@ -9,9 +9,9 @@ import torch
 from torchvision.utils import make_grid
 import torch.nn as nn
 
-sys.path.append('../..')
+#sys.path.append('../..')
 from api import utils as api_utils
-from api.utils import exr_loader, exr_saver
+
 
 
 def normal_to_rgb(normals_to_convert):
