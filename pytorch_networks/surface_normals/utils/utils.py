@@ -9,7 +9,7 @@ import torch
 from torchvision.utils import make_grid
 import torch.nn as nn
 
-sys.path.append('/jianyu-fast-vol/cgmstable')
+sys.path.append('../../')
 from api import utils as api_utils
 
 
