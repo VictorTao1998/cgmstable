@@ -7,7 +7,7 @@ train:
     labels: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
     depth: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
     split_file: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat_train.txt'
-    image_name: '0128_irL_kuafu_half.png'
+    image_name: '0128_irL_kuafu_half_no_ir.png'
     label_name: 'outline.png'
     depth_name: 'depthL.png'
     meta_name: 'meta.pkl'
@@ -56,7 +56,7 @@ train:
       labels: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
       depth: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
       split_file: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat_train.txt'
-      image_name: '0128_irL_kuafu_half.png'
+      image_name: '0128_irL_kuafu_half_no_ir.png'
       label_name: 'outline.png'
       depth_name: 'depth.png'
       meta_name: 'meta.pkl'
@@ -74,7 +74,7 @@ train:
   numClasses: 3
   numInputChannels: 3 # Num of channels in input image. RGB = 3 channels, Grayscale = 1 channel.
   numWorkers: 2 # Num of workers used in the dataloader
-  logsDir: "/jianyu-fast-vol/cgmstable/pytorch_networks/occlusion_boundaries/logs-deeplab" # Directory where logs of each exp will be saved.
+  logsDir: "/jianyu-fast-vol/cgmstable/pytorch_networks/occlusion_boundaries/logs-deeplab-noir" # Directory where logs of each exp will be saved.
   lossFunc: "cosine" # Possible values: ['cosine', 'radians']
   percentageDataForTraining: 1.0 # The percentage of images in dataset to be used for training.
   percentageDataForMatterportTraining: 0.5 # The percentage of images in dataset to be used for training.

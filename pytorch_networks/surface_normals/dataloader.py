@@ -16,6 +16,9 @@ import imageio
 
 import torch.nn.functional as F
 
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 
 
 class SurfaceNormalsDataset(Dataset):
@@ -89,9 +92,11 @@ class SurfaceNormalsDataset(Dataset):
         if self.labels_dir:
             label_path = self.img_label[index]
             #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
+            #print(Image.open(label_path).size)
+            print(label_path)
             _label = Image.open(label_path).resize([960,540], resample=Image.NEAREST)
             _label = np.array(_label).astype(np.float)
-            #print(_label.shape, _label[0,0,0])
+            #print(_label.shape)
             _label = np.reshape(_label,[540,960,3])
             _label = _label.transpose((2, 0, 1))
 
@@ -159,7 +164,7 @@ class SurfaceNormalsDataset(Dataset):
         with open(cfg.split_file, 'r') as f:
             prefix = [line.strip() for line in f]
 
-        np.random.shuffle(prefix)
+        #np.random.shuffle(prefix)
 
         img_L = [os.path.join(cfg.images, p, cfg.image_name) for p in prefix]
         img_depth_l = [os.path.join(cfg.depth, p, cfg.depth_name) for p in prefix]

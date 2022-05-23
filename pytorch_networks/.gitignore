@@ -2,7 +2,9 @@
 # PYTORCH NORMALS
 pytorch-normals/.ipynb_checkpoints/*
 pytorch-normals/logs*
-
+surface_normals/logs*
+masks/logs*
+occlusion_boundaries/logs*
 !pytorch-normals/data/
 
 pytorch-normals/data/*

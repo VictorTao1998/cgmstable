@@ -561,6 +561,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
 
             grid_image = utils.create_grid_image(inputs, output.float(), labels, max_num_images_to_save=16)
             writer.add_image('Train', grid_image, total_iter_num)
+            print('iter: ', total_iter_num, 'loss: ', loss.item())
 
     # Update Learning Rate Scheduler
     if config.train.lrScheduler == 'StepLR':
