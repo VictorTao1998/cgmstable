@@ -313,6 +313,7 @@ class DepthToDepthCompletion(object):
         """
 
         # Create dirs
+        print('1')
         orig_input_depth_dir = os.path.join(root_dir, self.FOLDER_MAP['orig-input-depth']['folder-name'])
         orig_input_ptcloud_dir = os.path.join(root_dir, self.FOLDER_MAP['orig-input-point-cloud']['folder-name'])
         input_depth_dir = os.path.join(root_dir, self.FOLDER_MAP['input-depth']['folder-name'])
@@ -345,13 +346,13 @@ class DepthToDepthCompletion(object):
         gt_depth_filename = files_prefix + self.FOLDER_MAP['gt-depth']['postfix']
         gt_depth_filename = os.path.join(gt_depth_dir, gt_depth_filename)
         utils.exr_saver(gt_depth_filename, self.depth_gt, ndim=3)
-
+        print('2')
         gt_ptcloud_filename = (files_prefix + self.FOLDER_MAP['gt-point-cloud']['postfix'])
         gt_ptcloud_filename = os.path.join(gt_ptcloud_dir, gt_ptcloud_filename)
         xyz_points, rgb_points = utils._get_point_cloud(self.input_image, self.depth_gt, self.fx, self.fy, self.cx,
                                                         self.cy)
         self.estimate_normals_write_ptcloud(gt_ptcloud_filename, xyz_points, self.outputImgHeight, self.outputImgWidth)
-
+        print('3')
         # Save Orig input depth and point cloud
         input_depth_filename = files_prefix + self.FOLDER_MAP['orig-input-depth']['postfix']
         input_depth_filename = os.path.join(orig_input_depth_dir, input_depth_filename)
@@ -377,6 +378,7 @@ class DepthToDepthCompletion(object):
         #                        self.cy)
 
         # Save output depth and point cloud
+        
         output_depth_filename = files_prefix + self.FOLDER_MAP['output-depth']['postfix']
         output_depth_filename = os.path.join(output_depth_dir, output_depth_filename)
         utils.exr_saver(output_depth_filename, self.output_depth, ndim=3)
