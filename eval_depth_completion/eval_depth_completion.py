@@ -143,7 +143,7 @@ if __name__ == '__main__':
                                                                             len(gt_depth_file_list)))
     """
 
-    with open('/media/jianyu/dataset/messy-table-dataset/real_data_v10/test.txt', 'r') as f:
+    with open('/messytable-slow-vol/messy-table-dataset/real_data_v10/test.txt', 'r') as f:
         prefix = [line.strip() for line in f]
     
     rgb_file = config.files.image
