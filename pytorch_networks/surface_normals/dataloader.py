@@ -52,6 +52,7 @@ class SurfaceNormalsDataset(Dataset):
 
         self.images_dir = input_dir
         self.labels_dir = label_dir
+        print(self.labels_dir)
         self.masks_dir = mask_dir
         self.transform = transform
         self.input_only = input_only

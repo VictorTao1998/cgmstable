@@ -15,7 +15,7 @@ spec:
       - name: container
         image: victortao/cleargrasp:v2
         command: ["/bin/bash", "-c"]
-        args: ["cd /jianyu-fast-vol/cgmstable/pytorch_networks/surface_normals/ && python train.py -c configs/config_noir.yaml"]
+        args: ["cd /jianyu-fast-vol/cgmstable/pytorch_networks/surface_normals/ && python train.py -c config/config_noir.yaml"]
         resources:
           requests:
             cpu: "4"
@@ -43,7 +43,7 @@ spec:
         - name: isabella-slow-vol
           mountPath: /isabella-slow
         - name: messytable-slow-vol
-          mountPath: /messytable-slow
+          mountPath: /messytable-slow-vol
         - name: dshm
           mountPath: /dev/shm
         - name: jianyu-fast-vol
