@@ -487,7 +487,8 @@ for epoch in range(START_EPOCH, END_EPOCH):
     running_median = 0
     for iter_num, batch in enumerate(tqdm(trainLoader)):
         total_iter_num += 1
-
+        if total_iter_num >  5:
+            break
 
         # Get data
         if config.train.batchSizeMatterport == 0 and config.train.batchSizeScannet == 0:
@@ -804,6 +805,9 @@ for epoch in range(START_EPOCH, END_EPOCH):
         for iter_num, sample_batched in enumerate(tqdm(testSyntheticLoader)):
             inputs, labels, masks = sample_batched
 
+            if iter_num > 5:
+                break
+                
             # Forward pass of the mini-batch
             if config.train.model == 'refinenet':
                 labels_resized = resize_tensor(labels, int(labels.shape[2] / 4), int(labels.shape[3] / 4))
