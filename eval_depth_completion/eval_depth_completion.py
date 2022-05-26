@@ -190,8 +190,10 @@ if __name__ == '__main__':
     for i in range(len(rgb_file_list)):
 
         # Run Depth Completion
-        color_img = np.array(Image.open(rgb_file_list[i]).convert('RGB'))
-        color_img = cv2.resize(color_img, (960, 540), interpolation=cv2.INTER_CUBIC)
+        color_img = Image.open(rgb_file_list[i]).convert('RGB')
+        color_img = color_img.resize([960,540], resample=Image.BILINEAR)
+        color_img = np.array(color_img)
+        #color_img = cv2.resize(color_img, (960, 540), interpolation=cv2.INTER_CUBIC)
         #input_depth = api_utils.exr_loader(depth_file_list[i], ndim=1)
         
         input_depth = register_depth(depth_file_list[i], meta_list[i])

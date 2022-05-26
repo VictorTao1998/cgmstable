@@ -94,7 +94,7 @@ class SurfaceNormalsDataset(Dataset):
             label_path = self.img_label[index]
             #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
             #print(Image.open(label_path).size)
-            print(label_path)
+            #print(label_path)
             _label = Image.open(label_path).resize([960,540], resample=Image.NEAREST)
             _label = np.array(_label).astype(np.float)
             #print(_label.shape)

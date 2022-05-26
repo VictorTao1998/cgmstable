@@ -243,7 +243,7 @@ class InferenceNormals():
             inputs = transforms.ToTensor()(img)
             inputs = torch.unsqueeze(inputs, 0)
             inputs = inputs.to(self.device)
-
+            #print(inputs.shape)
             outputs = self.model(inputs)
 
             outputs_norm = nn.functional.normalize(outputs, p=2, dim=1)
