@@ -15,7 +15,7 @@ files:
 
 
 # Path where the results will be stored
-resultsDir: '/jianyu-fast-vol/eval/cleargrasp_sim_noir'
+resultsDir: '/jianyu-fast-vol/eval/cleargrasp_sim_noir_test'
 
 # Surface Normals Model
 normals:
