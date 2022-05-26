@@ -652,6 +652,8 @@ for epoch in range(START_EPOCH, END_EPOCH):
         running_mean = 0
         running_median = 0
         for iter_num, sample_batched in enumerate(tqdm(validationLoader)):
+            if iter_num > 5:
+                break
             inputs, labels, masks = sample_batched
 
             # Forward pass of the mini-batch
