@@ -52,7 +52,7 @@ class SurfaceNormalsDataset(Dataset):
 
         self.images_dir = input_dir
         self.labels_dir = label_dir
-        print(self.labels_dir)
+        #print(self.labels_dir)
         self.masks_dir = mask_dir
         self.transform = transform
         self.input_only = input_only
@@ -171,7 +171,7 @@ class SurfaceNormalsDataset(Dataset):
         img_depth_l = [os.path.join(cfg.depth, p, cfg.depth_name) for p in prefix]
 
         img_meta = [os.path.join(cfg.depth, p, cfg.meta_name) for p in prefix]
-        img_label = [os.path.join(cfg.images, p, cfg.label_name) for p in prefix]
+        img_label = [os.path.join(cfg.labels, p, cfg.label_name) for p in prefix]
 
 
         return img_L, img_depth_l, img_meta, img_label
