@@ -487,6 +487,8 @@ for epoch in range(START_EPOCH, END_EPOCH):
     running_median = 0
     for iter_num, batch in enumerate(tqdm(trainLoader)):
         total_iter_num += 1
+        if total_iter_num > 5:
+            break
 
         # Get data
         if config.train.batchSizeMatterport == 0 and config.train.batchSizeScannet == 0:

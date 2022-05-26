@@ -1,0 +1,98 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: jianyu-normal-test
+  namespace: ucsd-haosulab
+
+spec:
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      # priorityClassName: nice
+      restartPolicy: OnFailure
+      containers:
+      - name: container
+        image: victortao/cleargrasp:v2
+        command: ["/bin/bash", "-c"]
+        args: ["cd /jianyu-fast-vol/cgmstable/pytorch_networks/surface_normals/ && python train.py -c configs/config_noir.yaml"]
+        resources:
+          requests:
+            cpu: "4"
+            memory: "10Gi"
+            nvidia.com/gpu: 1
+          limits:
+            cpu: "4"
+            memory: "10Gi"
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: cephfs
+          mountPath: /cephfs
+        - name: jet-fast-vol
+          mountPath: /jet
+        - name: jet-slow-vol
+          mountPath: /jet-slow
+        - name: rayc-fast-vol
+          mountPath: /rayc-fast
+        - name: rayc-slow-vol
+          mountPath: /rayc-slow
+        - name: jet-ris-vol
+          mountPath: /jet-ris
+        - name: isabella-fast-vol
+          mountPath: /isabella-fast
+        - name: isabella-slow-vol
+          mountPath: /isabella-slow
+        - name: messytable-slow-vol
+          mountPath: /messytable-slow
+        - name: dshm
+          mountPath: /dev/shm
+        - name: jianyu-fast-vol
+          mountPath: /jianyu-fast-vol
+      volumes:
+      - name: cephfs
+        persistentVolumeClaim:
+          claimName: haosulab-cephfs
+      - name: rayc-fast-vol
+        persistentVolumeClaim:
+          claimName: rayc-fast-vol
+      - name: rayc-slow-vol
+        persistentVolumeClaim:
+          claimName: rayc-slow-vol
+      - name: jet-ris-vol
+        persistentVolumeClaim:
+          claimName: jet-ris-vol
+      - name: jet-fast-vol
+        persistentVolumeClaim:
+          claimName: jet-fast-vol
+      - name: jet-slow-vol
+        persistentVolumeClaim:
+          claimName: jet-slow-vol
+      - name: isabella-fast-vol
+        persistentVolumeClaim:
+          claimName: isabella-fast-vol
+      - name: isabella-slow-vol
+        persistentVolumeClaim:
+          claimName: isabella-slow-vol
+      - name: messytable-slow-vol
+        persistentVolumeClaim:
+          claimName: messytable-slow-vol
+      - name: jianyu-fast-vol
+        persistentVolumeClaim:
+          claimName: jianyu-fast-vol
+      - name: dshm
+        emptyDir:
+          medium: Memory
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: nautilus.io/group
+                    operator: In
+                    values:
+                    - haosu
+                  - key: nvidia.com/gpu.product
+                    operator: In
+                    values:
+                    - NVIDIA-GeForce-RTX-2080-Ti
