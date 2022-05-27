@@ -117,8 +117,14 @@ eval:
   # Synthetic datasets with ground truth labels
   # Used as validation set
   datasetsSynthetic:
-    - images: '/media/jianyu/dataset/messy-table-dataset/obj_fixang_fixpat/data'
-      labels: '/media/jianyu/dataset/messy-table-dataset/obj_fixang_fixpat/data'
+    - images: '/media/jianyu/dataset/messy-table-dataset/ijrrobj_simtest_fixang_fixpat'
+      labels: '/media/jianyu/dataset/messy-table-dataset/real_data_v10'
+      depth: '/media/jianyu/dataset/messy-table-dataset/ijrrobj_simtest_fixang_fixpat'
+      split_file: '/media/jianyu/dataset/messy-table-dataset/real_data_v10/test.txt'
+      image_name: '0128_irL_kuafu_half_no_ir.png'
+      label_name: 'normalL.png'
+      depth_name: 'depthL.png'
+      meta_name: 'meta.pkl'
 
   # Datasets of real images, no labels available
   # Used as Test set
@@ -137,11 +143,11 @@ eval:
   # Params
   model: "drn" # Possible values: ['deeplab_xception', 'deeplab_resnet', 'drn']
   numClasses: 3
-  batchSize: 32
-  imgHeight: 256
-  imgWidth: 256
+  batchSize: 1
+  imgHeight: 540
+  imgWidth: 960
   os: 8
   numWorkers: 4 # Num of workers used in the dataloader
-  pathWeightsFile: "checkpoints/outlines/drn-256p-contact-edges/checkpoints/checkpoint-epoch-0051.pth" # Path to the checkpoint to be loaded
-  resultsDir: "/media/jianyu/dataset/eval"
+  pathWeightsFile: "/media/jianyu/dataset/eval/cleargrasp/model/normal_noir/checkpoint-epoch-0015.pth" # Path to the checkpoint to be loaded
+  resultsDir: "/media/jianyu/dataset/eval/cleargrasp_eval"
 

@@ -12,6 +12,7 @@ files:
   normalname: 'normalL.png'
   gt_depthname: 'depthL.png'
   labelname: 'labelL.png'
+  split_file: '/messytable-slow-vol/messy-table-dataset/real_data_v10/test.txt'
 
 
 # Path where the results will be stored

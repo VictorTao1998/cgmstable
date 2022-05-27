@@ -152,7 +152,7 @@ class InferenceNormals():
         else:
             raise NotImplementedError(
                 'Model may only be "unet" or "deeplab_resnet". Given model is: {}'.format(normalsModel))
-
+        self.model = nn.DataParallel(self.model)
         # Load Checkpoint and its data (weights file)
         if not os.path.isfile(normalsWeightsFile):
             raise ValueError('Invalid path to the given weights file in config. The file "{}" does not exist'.format(
@@ -163,11 +163,11 @@ class InferenceNormals():
             # Newer checkpoints have multiple dicts within
             # checkpoint['model_state_dict'].pop('decoder.last_conv.8.weight')
             # checkpoint['model_state_dict'].pop('decoder.last_conv.8.bias')
-            self.model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
         elif 'state_dict' in checkpoint:
             checkpoint['state_dict'].pop('decoder.last_conv.8.weight')
             checkpoint['state_dict'].pop('decoder.last_conv.8.bias')
-            self.model.load_state_dict(checkpoint['state_dict'], strict=False)
+            self.model.load_state_dict(checkpoint['state_dict'])
         else:
             self.model.load_state_dict(checkpoint)
 
@@ -258,7 +258,7 @@ class InferenceNormals():
             # # Create RGB Viz of Rotated Normals
             # surface_normals_rgb = self._normal_to_rgb(surface_normals_rotated.transpose((1, 2, 0)))
 
-        return surface_normals_rotated, surface_normals_rgb
+        return surface_normals_rotated, surface_normals_rgb, outputs_norm.detach().cpu(), inputs.detach().cpu()
 
 
 class InferenceMasks():
@@ -297,11 +297,11 @@ class InferenceMasks():
         checkpoint = torch.load(masksWeightsFile, map_location='cpu')
         if 'model_state_dict' in checkpoint:
             # Newer checkpoints have multiple dicts within
-            self.model.load_state_dict(checkpoint['model_state_dict'], strict=True)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
         elif 'state_dict' in checkpoint:
             checkpoint['state_dict'].pop('decoder.last_conv.8.weight')
             checkpoint['state_dict'].pop('decoder.last_conv.8.bias')
-            self.model.load_state_dict(checkpoint['state_dict'], strict=False)
+            self.model.load_state_dict(checkpoint['state_dict'])
         else:
             raise RuntimeError('Invalid Checkpoint. It does not contain "model_state_dict" in it:\n{}'.format(
                 checkpoint.keys()))

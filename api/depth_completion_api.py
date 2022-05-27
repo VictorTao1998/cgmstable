@@ -209,8 +209,10 @@ class DepthToDepthCompletion(object):
         self.input_depth = None
         self.output_depth = None
         self.filtered_output_depth = None
+        self.input_tensor = None
         self.surface_normals = None
         self.surface_normals_rgb = None
+        self.surface_normals_tensor = None
         self.occlusion_weight = None
         self.occlusion_weight_rgb = None
         self.outlines_rgb = None
@@ -650,7 +652,8 @@ class DepthToDepthCompletion(object):
         utils.save_uint16_png(self._PATH_TMP_INPUT_DEPTH, scaled_input_depth)
 
         # SURFACE NORMALS
-        self.surface_normals, self.surface_normals_rgb = self.inferenceNormals.runOnNumpyImage(input_image)
+        self.surface_normals, self.surface_normals_rgb, self.surface_normals_tensor, self.input_tensor = self.inferenceNormals.runOnNumpyImage(input_image)
+        #print(self.surface_normals[:,0,0])
         # resize surface normals
         self.surface_normals = self.surface_normals.transpose(1, 2, 0)
         self.surface_normals = cv2.resize(self.surface_normals, (self.outputImgWidth, self.outputImgHeight),

@@ -107,9 +107,9 @@ if config.eval.datasetsSynthetic is not None:
     for dataset in config.eval.datasetsSynthetic:
         print('Creating Synthetic Images dataset from: "{}"'.format(dataset.images))
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
+                                                  input_dir=dataset.images,
                                                   label_dir=dataset.labels,
-                                                  mask_dir=dataset.masks,
                                                   transform=augs_test,
                                                   input_only=None)
             db_test_list_synthetic.append(db)
@@ -120,9 +120,9 @@ if config.eval.datasetsReal is not None:
     for dataset in config.eval.datasetsReal:
         print('Creating Real Images dataset from: "{}"'.format(dataset.images))
         if dataset.images:
-            db = dataloader.SurfaceNormalsDataset(input_dir=dataset.images,
+            db = dataloader.SurfaceNormalsDataset(cfg=dataset,
+                                                  input_dir=dataset.images,
                                                   label_dir=dataset.labels,
-                                                  mask_dir=dataset.masks,
                                                   transform=augs_test,
                                                   input_only=None)
             db_test_list_real.append(db)
@@ -132,10 +132,11 @@ if config.eval.datasetsMatterport is not None:
     for dataset in config.eval.datasetsMatterport:
         print('Creating Matterport Images dataset from: "{}"'.format(dataset.images))
         if dataset.images:
-            db = dataloader_matterport.SurfaceNormalsDataset(input_dir=dataset.images,
-                                                             label_dir=dataset.labels,
-                                                             transform=augs_test,
-                                                             input_only=None)
+            db = dataloader_matterport.SurfaceNormalsDataset(cfg=dataset,
+                                                  input_dir=dataset.images,
+                                                  label_dir=dataset.labels,
+                                                  transform=augs_test,
+                                                  input_only=None)
             db_test_list_matterport.append(db)
 
 # Create pytorch dataloaders from datasets
@@ -179,6 +180,10 @@ elif config.eval.model == 'deeplab_resnet':
 elif config.eval.model == 'drn':
     model = deeplab.DeepLab(num_classes=config.eval.numClasses, backbone='drn', sync_bn=True,
                             freeze_bn=False)
+
+#print('keys: ', CHECKPOINT['model_state_dict'].keys())
+#assert(1==0)
+model = nn.DataParallel(model)
 
 model.load_state_dict(CHECKPOINT['model_state_dict'])
 

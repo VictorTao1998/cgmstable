@@ -17,6 +17,7 @@ import open3d as o3d
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from api import depth_completion_api
 from api import utils as api_utils
+from tensorboardX import SummaryWriter
 
 import attrdict
 import imageio
@@ -29,6 +30,7 @@ import numpy as np
 from utils.io import load_pickle
 from utils.metrics import ErrorMetric
 from utils.evaluate_realsense import register_depth
+from utils import eval_utils
 #print(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from api import utils
@@ -66,6 +68,8 @@ if __name__ == '__main__':
     # Init depth completion API
     outputImgHeight = int(config.depth2depth.yres)
     outputImgWidth = int(config.depth2depth.xres)
+
+    logger = SummaryWriter(results_dir, comment='create-graph')
     # if config.files.camera_intrinsics is not None or config.files.camera_intrinsics is not '':
     #     print(colored('\nUsing camera intrinsics from yaml file of real camera!\n'), 'green')
     #     CONFIG_FILE_PATH = config.files.camera_intrinsics
@@ -143,7 +147,7 @@ if __name__ == '__main__':
                                                                             len(gt_depth_file_list)))
     """
 
-    with open('/messytable-slow-vol/messy-table-dataset/real_data_v10/test.txt', 'r') as f:
+    with open(config.files.split_file, 'r') as f:
         prefix = [line.strip() for line in f]
     
     rgb_file = config.files.image
@@ -288,13 +292,16 @@ if __name__ == '__main__':
         grid_image2 = np.concatenate(
             (orig_input_depth_rgb, input_depth_rgb, output_depth_rgb, gt_depth_rgb), 1)
         grid_image = np.concatenate((grid_image1, grid_image2), 0)
-
+        img_normal_l
 
         path_result_viz = os.path.join(os.path.join(file_dir, data_dir),
                                        prefix[i] + '-vis.png')
         #print(grid_image.dtype)
         cv2.imwrite(path_result_viz, grid_image)
         #imageio.imwrite(path_result_viz, grid_image)
+
+        grid_image = eval_utils.create_grid_image(depthcomplete.input_tensor, depthcomplete.surface_normals_tensor.float(), max_num_images_to_save=1)
+        logger.add_image('Train', grid_image, i)
 
 
 

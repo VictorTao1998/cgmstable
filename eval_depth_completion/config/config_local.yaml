@@ -2,34 +2,41 @@
 
 # Input file Directories of Synthetic Images
 files:
-  image: '/media/jianyu/dataset/messy-table-dataset/real_data_v10'
-  depth: '/media/jianyu/dataset/messy-table-dataset/real_data_v10'
+  image: '/media/jianyu/dataset/messy-table-dataset/ijrrobj_simtest_fixang_fixpat'
+  depth: '/media/jianyu/dataset/messy-table-dataset/real_data_v10/'
   masks: '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
-  gt_depth: '/media/jianyu/dataset/messy-table-dataset/real_data_v10'
-  label: '/media/jianyu/dataset/messy-table-dataset/real_data_v9'
+  gt_depth: '/media/jianyu/dataset/messy-table-dataset/ijrrobj_simtest_fixang_fixpat'
+  label: '/media/jianyu/dataset/messy-table-dataset/ijrrobj_simtest_fixang_fixpat'
+  normal: '/media/jianyu/dataset/messy-table-dataset/real_data_v10/'
+  imagename: '0128_irL_kuafu_half_no_ir.png'
+  normalname: 'normalL.png'
+  gt_depthname: 'depthL.png'
+  labelname: 'labelL.png'
+  split_file: '/media/jianyu/dataset/messy-table-dataset/real_data_v10/test.txt'
+  
 
 
 # Path where the results will be stored
-resultsDir: '/media/jianyu/dataset/eval/cleargrasp/obj_dataset_eval'
+resultsDir: '/media/jianyu/dataset/eval/cleargrasp/messy-table/sim-noir'
 
 # Surface Normals Model
 normals:
   model: 'drn'  # Which model to use for inference. Possible values: ['unet', 'deeplab_resnet']
-  pathWeightsFile: '/code/cleargrasp/pytorch_networks/surface_normals/logs-deeplab/checkpoint-epoch-0000.pth'  # Path to the checkpoint to be loaded
+  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/normal_noir/checkpoint-epoch-0015.pth'  # Path to the checkpoint to be loaded
   inferenceHeight: 540
   inferenceWidth: 960
 
 # Outlines Model
 outlines:
   model: 'drn'  # Which model to use for inference. Possible values: ['unet', 'deeplab_resnet']
-  pathWeightsFile: '/code/cleargrasp/pytorch_networks/occlusion_boundaries/logs-deeplab/checkpoint-epoch-0045.pth'  # Path to the checkpoint to be loaded
+  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/outline_noir/checkpoint-epoch-0025.pth'  # Path to the checkpoint to be loaded
   inferenceHeight: 540
   inferenceWidth: 960
 
 # Segmentation Masks Model
 masks:
   model: 'drn' # Which model to use for inference. Possible values: ['drn', 'deeplab_resnet']
-  pathWeightsFile: '/code/cleargrasp/pytorch_networks/masks/logs-deeplab/checkpoint-epoch-0045.pth'
+  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/mask_noir/checkpoint-epoch-0035.pth'
   inferenceHeight: 540
   inferenceWidth: 960
 

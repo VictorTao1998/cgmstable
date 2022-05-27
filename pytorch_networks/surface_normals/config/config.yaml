@@ -34,13 +34,13 @@ train:
 
   # Synthetic datasets with ground truth labels - Used as test set
   datasetsTestSynthetic:
-    - images: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
-      labels: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
-      depth: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat/data/'
-      split_file: '/messytable-slow-vol/messy-table-dataset/obj_fixang_fixpat_train.txt'
+    - images: '/messytable-slow-vol/messy-table-dataset/ijrrobj_simtest_fixang_fixpat/data/'
+      labels: '/messytable-slow-vol/messy-table-dataset/real_data_v10/'
+      depth: '/messytable-slow-vol/messy-table-dataset/ijrrobj_simtest_fixang_fixpat/data/'
+      split_file: '/messytable-slow-vol/messy-table-dataset/ijrrobj_simtest_fixang_fixpat/test.txt'
       image_name: '0128_irL_kuafu_half.png'
       label_name: 'normalL.png'
-      depth_name: 'depth.png'
+      depth_name: 'depthL.png'
       meta_name: 'meta.pkl'
 
 

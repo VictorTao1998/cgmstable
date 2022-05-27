@@ -12,8 +12,6 @@ import torch.nn as nn
 sys.path.append('../../')
 from api import utils as api_utils
 
-from api.utils import exr_saver
-
 
 
 def normal_to_rgb(normals_to_convert):
@@ -32,7 +30,7 @@ def normal_to_rgb(normals_to_convert):
     return camera_normal_rgb
 
 
-def create_grid_image(inputs, outputs, labels, max_num_images_to_save=3):
+def create_grid_image(inputs, outputs, max_num_images_to_save=3):
     '''Make a grid of images for display purposes
     Size of grid is (3, N, 3), where each coloum belongs to input, output, label resp
 
@@ -52,36 +50,9 @@ def create_grid_image(inputs, outputs, labels, max_num_images_to_save=3):
     output_tensor = outputs[:max_num_images_to_save]
     output_tensor_rgb = normal_to_rgb(output_tensor)
 
-    label_tensor = labels[:max_num_images_to_save]
-    mask_invalid_pixels = torch.all(label_tensor == 0, dim=1, keepdim=True)
-    mask_invalid_pixels = (torch.cat([mask_invalid_pixels] * 3, dim=1)).byte()
-
-    label_tensor_rgb = normal_to_rgb(label_tensor)
-    mask_invalid_pixels = mask_invalid_pixels.type(torch.bool)
-    label_tensor_rgb[mask_invalid_pixels] = 0
-
-    cos = nn.CosineSimilarity(dim=1, eps=1e-6)
-    x = cos(output_tensor, label_tensor)
-    # loss_cos = 1.0 - x
-    loss_rad = torch.acos(x)
-
-    loss_rad_rgb = np.zeros((loss_rad.shape[0], 3, loss_rad.shape[1], loss_rad.shape[2]), dtype=np.float32)
-    for idx, img in enumerate(loss_rad.numpy()):
-        error_rgb = api_utils.depth2rgb(img,
-                                        min_depth=0.0,
-                                        max_depth=1.57,
-                                        color_mode=cv2.COLORMAP_PLASMA,
-                                        reverse_scale=False)
-        loss_rad_rgb[idx] = error_rgb.transpose(2, 0, 1) / 255
-    loss_rad_rgb = torch.from_numpy(loss_rad_rgb)
-
     
-    loss_rad_rgb[mask_invalid_pixels] = 0
 
-    mask_invalid_pixels_rgb = torch.ones_like(img_tensor)
-    mask_invalid_pixels_rgb[mask_invalid_pixels] = 0
-
-    images = torch.cat((img_tensor, output_tensor_rgb, label_tensor_rgb, loss_rad_rgb, mask_invalid_pixels_rgb), dim=3)
+    images = torch.cat((img_tensor, output_tensor_rgb), dim=3)
     # grid_image = make_grid(images, 1, normalize=True, scale_each=True)
     grid_image = make_grid(images, 1, normalize=False, scale_each=False)
 
