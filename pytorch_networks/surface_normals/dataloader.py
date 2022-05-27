@@ -95,18 +95,23 @@ class SurfaceNormalsDataset(Dataset):
             label_path = self.img_label[index]
        
             img_normal_l = cv2.imread(label_path, cv2.IMREAD_UNCHANGED)
-            img_normal_l = (img_normal_l.astype(float)) / 1000 - 1
+            try:
+                img_normal_l = (img_normal_l.astype(float)) / 1000 - 1
+            except:
+                print("truncated: ", label_path)
+                img_normal_l = np.ones([960,540,3])
+            
             _label = cv2.resize(img_normal_l, (960, 540), interpolation=cv2.INTER_NEAREST)
            
             #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
             #print(Image.open(label_path).size)
             #print(label_path)
-            #_label = Image.open(label_path).resize([960,540], resample=Image.NEAREST)
-            #_label = np.array(_label).astype(np.float)
+            #_label = Image.open(label_path).convert('RGB').resize([960,540], resample=Image.NEAREST)
+            #_label = np.array(_label).astype(np.float32) / 1000 - 1
             #print(_label.shape)
             #_label = np.reshape(_label,[540,960,3])
             _label = _label.transpose((2, 0, 1))
-            #print(_label[:,0,0])
+            #print(np.max(_label), np.min(_label))
             #print(_label.shape)
 
         if self.masks_dir:
