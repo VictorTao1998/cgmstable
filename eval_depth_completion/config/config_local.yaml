@@ -22,7 +22,7 @@ resultsDir: '/media/jianyu/dataset/eval/cleargrasp/messy-table/sim-noir'
 # Surface Normals Model
 normals:
   model: 'drn'  # Which model to use for inference. Possible values: ['unet', 'deeplab_resnet']
-  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/normal_noir/checkpoint-epoch-0015.pth'  # Path to the checkpoint to be loaded
+  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/normal_noir/checkpoint-epoch-0005.pth'  # Path to the checkpoint to be loaded
   inferenceHeight: 540
   inferenceWidth: 960
 
@@ -49,7 +49,7 @@ depth2depth:
   fy: 672 # Focal length in pixels along height
   cx: 476 # Center of image in pixels along width
   cy: 270  # Center of image in pixels along height
-  inertia_weight: 1000.0  # The strength of the penalty on the difference between the input and the output depth map on observed pixels. Set this value higher if you want to maintain the observed depth from input_depth.
+  inertia_weight: 100.0  # The strength of the penalty on the difference between the input and the output depth map on observed pixels. Set this value higher if you want to maintain the observed depth from input_depth.
   smoothness_weight: 0.001  # The strength of the penalty on the difference between the depths of neighboring pixels. Higher smoothness weight will produce soap-film-like result.
   tangent_weight: 1.0  # The universal strength of the surface normal constraint. Higher tangent weight will force the output to have the same surface normal with the given one.
 

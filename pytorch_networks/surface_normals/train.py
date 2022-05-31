@@ -490,6 +490,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
 
         # Get data
         if config.train.batchSizeMatterport == 0 and config.train.batchSizeScannet == 0:
+            #print('in')
             inputs, labels, masks = batch
         else:
             inputs_t, labels_t, masks_t = batch
@@ -518,6 +519,7 @@ for epoch in range(START_EPOCH, END_EPOCH):
         torch.set_grad_enabled(True)
         normal_vectors = model(inputs)
         normal_vectors_norm = nn.functional.normalize(normal_vectors.double(), p=2, dim=1)
+        #print(normal_vectors_norm[0,:,270,480], labels[0,:,270,480])
         # normal_vectors_norm = normal_vectors_norm.double()
 
         if config.train.model == 'unet':

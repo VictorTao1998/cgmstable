@@ -190,6 +190,29 @@ if __name__ == '__main__':
     metric = ErrorMetric()
     metric.reset()
     file_dir = results_dir
+    normal_dir = os.path.join(file_dir, 'normal')
+    os.mkdir(normal_dir)
+
+    test_prefix = ['1-300135-11',
+                    '0-300116-1',
+                    '0-300197-2',
+                    '0-300138-15',
+                    '1-300117-18',
+                    '0-300135-1',
+                    '0-300126-10',
+                    '0-300124-9',
+                    '0-300169-17',
+                    '0-300124-1',
+                    '0-300124-12',
+                    '0-300126-1',
+                    '1-300101-9',
+                    '0-300103-1',
+                    '0-300128-10',
+                    '0-300104-12',
+                    '0-300172-10',
+                    '0-300103-13',
+                    '0-300155-1',
+                    '1-300101-2']
 
     for i in range(len(rgb_file_list)):
 
@@ -302,6 +325,11 @@ if __name__ == '__main__':
 
         grid_image = eval_utils.create_grid_image(depthcomplete.input_tensor, depthcomplete.surface_normals_tensor.float(), max_num_images_to_save=1)
         logger.add_image('Train', grid_image, i)
+
+        raw_normal = depthcomplete.surface_normals
+        
+        np.save(os.path.join(normal_dir, data_dir + '.npy'), raw_normal)
+        #print(raw_normal[:,0,0])
 
 
 

@@ -94,12 +94,15 @@ class InferenceOutlines():
 
             outputs = self.model(inputs)
             predictions = torch.max(outputs, 1)[1]
+            #print(torch.max(outputs, 1)[1])
 
             # Generate and Save Occlusion Weights File used by depth2depth
             # calculating occlusion weights
             SCALING_FACTOR_PWR = scaling_factor_weights
             SCALING_FACTOR_MUL = 1000
+            
             output_softmax = nn.Softmax(dim=1)(outputs).squeeze(0).cpu().numpy()
+            #print(output_softmax.shape)
             # TEST - REMOVING UNCERTAIN VALUES FROM OUTLINE WEIGHTS
             # output_softmax[output_softmax < 0.3] = 1e-4
             weight = (1 - output_softmax[1, :, :])  # Occlusion (depth) boundaries is channel 1
@@ -124,6 +127,7 @@ class InferenceOutlines():
             occlusion_boundary_weight_rgb = (occlusion_boundary_weight / NORM_FACTOR_UINT8).astype(np.uint8)
             occlusion_boundary_weight_rgb = cv2.applyColorMap(occlusion_boundary_weight_rgb, cv2.COLORMAP_OCEAN)
             occlusion_boundary_weight_rgb = cv2.cvtColor(occlusion_boundary_weight_rgb, cv2.COLOR_BGR2RGB)
+            #print(occlusion_boundary_weight.shape)
 
         return occlusion_boundary_weight, occlusion_boundary_weight_rgb, output_rgb
 

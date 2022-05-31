@@ -95,6 +95,10 @@ class SurfaceNormalsDataset(Dataset):
             label_path = self.img_label[index]
        
             img_normal_l = cv2.imread(label_path, cv2.IMREAD_UNCHANGED)
+            img_normal_l = np.ones(img_normal_l.shape)
+            img_normal_l[:,:,:2] = 1000.
+            img_normal_l[:,:,2] = 0
+            #img_normal_l = None
             try:
                 img_normal_l = (img_normal_l.astype(float)) / 1000 - 1
             except:
@@ -102,6 +106,7 @@ class SurfaceNormalsDataset(Dataset):
                 img_normal_l = np.ones([960,540,3])
             
             _label = cv2.resize(img_normal_l, (960, 540), interpolation=cv2.INTER_NEAREST)
+            #print(_label.shape)
            
             #_label = exr_loader(label_path, ndim=3)  # (3, H, W)
             #print(Image.open(label_path).size)

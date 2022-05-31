@@ -1,0 +1,147 @@
+# train.py Config - Training
+train:
+  # For datasets, please pass atleast 1 value. If no datasets exist, pass "" as path for images.
+  # Synthetic datasets with ground truth labels
+  datasetsTrain:
+    - images: '/messytable-slow-vol/messy-table-dataset/obj_rdang_fixpat/data/'
+      labels: '/messytable-slow-vol/messy-table-dataset/obj_rdang_fixpat/data/'
+      depth: '/messytable-slow-vol/messy-table-dataset/obj_rdang_fixpat/data/'
+      split_file: '/messytable-slow-vol/messy-table-dataset/obj_rdang_fixpat/train.txt'
+      image_name: '0128_irL_kuafu_half.png'
+      label_name: 'normalL.png'
+      depth_name: 'depthL.png'
+      meta_name: 'meta.pkl'
+
+
+  # Synthetic datasets with ground truth labels - 10% split of train
+  datasetsVal:
+    #- images: '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
+    #  labels: '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
+    #  depth: '/media/jianyu/dataset/messy-table-dataset/real_v9/training'
+    #  split_file: '/media/jianyu/dataset/messy-table-dataset/realTest.txt'
+    #  image_name: '0128_irL_denoised_half.png'
+    #  label_name: 'gt_normal.txt'
+    #  depth_name: 'depthL.png'
+    #  meta_name: 'meta.pkl'
+  # Real Images (no ground truth labels)
+  datasetsTestReal:
+  #    - images: 'data/datasets/real-test/d415/'
+  #      labels: ''
+  #    - images: 'data/datasets/real-test/d435/'
+  #      labels: ''
+  #    - images: 'data/datasets/real-val/d435/'
+  #      labels: ''
+
+  # Synthetic datasets with ground truth labels - Used as test set
+  datasetsTestSynthetic:
+    - images: '/messytable-slow-vol/messy-table-dataset/ijrrobj_simtest_fixang_fixpat/data/'
+      labels: '/messytable-slow-vol/messy-table-dataset/real_data_v10/'
+      depth: '/messytable-slow-vol/messy-table-dataset/ijrrobj_simtest_fixang_fixpat/data/'
+      split_file: '/messytable-slow-vol/messy-table-dataset/ijrrobj_simtest_fixang_fixpat/test.txt'
+      image_name: '0128_irL_kuafu_half.png'
+      label_name: 'normalL.png'
+      depth_name: 'depthL.png'
+      meta_name: 'meta.pkl'
+
+
+  # For pretraining surface normals on Matterport3D and Scannet Datasets
+  datasetsMatterportTrain:
+    # - images: 'data/datasets/matterport3d/train/matterport_rgb/v1/scans'
+    #   labels: 'data/datasets/matterport3d/train/matterport_render_normal'
+  datasetsMatterportVal:
+    # - images: 'data/datasets/matterport3d/val/matterport_rgb/v1/scans'
+    #   labels: 'data/datasets/matterport3d/val/matterport_render_normal'
+  datasetsScannetTrain:
+    # - images: 'data/datasets/scannet/scannet-rgb/scans/train'
+    #   labels: 'data/datasets/scannet/scannet_render_normal/train'
+  datasetsScannetVal:
+    # - images: 'data/datasets/scannet/scannet-rgb/scans/val'
+    #   labels: 'data/datasets/scannet/scannet_render_normal/val'
+
+
+  # Training/Validation Params
+  model: "drn" # Possible values: ['deeplab_xception', 'deeplab_resnet', 'drn']
+  batchSize: 2
+  batchSizeMatterport: 0
+  batchSizeScannet: 0
+  validationBatchSize: 2
+  testBatchSize: 2
+  numEpochs: 50
+  imgHeight: 540
+  imgWidth: 960
+  numClasses: 3
+  numInputChannels: 3 # Num of channels in input image. RGB = 3 channels, Grayscale = 1 channel.
+  numWorkers: 2 # Num of workers used in the dataloader
+  logsDir: "/jianyu-fast-vol/cgmstable/pytorch_networks/surface_normals/logs-deeplab-robj" # Directory where logs of each exp will be saved.
+  lossFunc: "cosine" # Possible values: ['cosine', 'radians']
+  percentageDataForTraining: 1.0 # The percentage of images in dataset to be used for training.
+  percentageDataForMatterportTraining: 0.5 # The percentage of images in dataset to be used for training.
+  percentageDataForScannetTraining: 0.35
+  percentageDataForValidation: 1.0
+  percentageDataForMatterportVal: 0.5
+  percentageDataForScannettVal: 0.5
+
+  # Deeplab specific
+  outputStride: 8 # Possible values: [8, 16]. Output stride for deeplabv3 model. Smaller values give finer details in output mask.
+  epochSize: 1 # After these many epochs, change learning rate
+
+  continueTraining: False # If true, continue training from a checkpoint
+  pathPrevCheckpoint: "checkpoints/outlines/drn-256p-contact-edges/checkpoints/checkpoint-epoch-0051.pth" # Path to .pth checkpoint file to load to continue training from
+  initOptimizerFromCheckpoint: False # Re-Initialize optimizer's state from checkpoint. NOTE: when this is enabled, value of learningRate will be overridden with value from checkpoint.
+  loadEpochNumberFromCheckpoint: False # If true, the epoch/iter numbering will start from the checkpoint's last epoch num.
+
+  saveImageInterval: 1 # Log output images to tensorboard every saveImageInterval epochs
+  saveImageIntervalIter: 100 # Every N iterations, log output images to tensorboard
+  testInterval: 1 # Run on test set every nTestInterval epochs. Keep at 0 to skip tests.
+  saveModelInterval: 5 # Save the model checkpoints every N epochs
+
+  # Optimizer Params
+  optimAdam:
+    learningRate: 0.0001
+    weightDecay: 0 # Other values: 0.0001
+  optimSgd:
+    learningRate: 1e-6
+    momentum: 0.9
+    weight_decay: 5e-4
+  lrScheduler: "StepLR" # Possible Values: ['', 'StepLR', 'ReduceLROnPlateau'] 
+  lrSchedulerStep:
+    step_size: 7
+    gamma: 0.1
+  lrSchedulerPlateau:
+    factor: 0.8
+    patience: 25
+    verbose: True
+
+# eval.py Config - Validation/Testing Inference
+eval:
+  # Synthetic datasets with ground truth labels
+  # Used as validation set
+  datasetsSynthetic:
+    - images: '/messytable-slow-vol/messy-table-dataset/obj_rdang_fixpat/data/'
+      labels: '/messytable-slow-vol/messy-table-dataset/obj_rdang_fixpat/data/'
+
+  # Datasets of real images, no labels available
+  # Used as Test set
+  datasetsReal:
+    # - images: "datasets-transparent/studio_pics_sorted/selected_test/d415"
+    #   labels: "datasets-transparent/studio_pics_sorted/selected_test/d415"
+    # - images: "datasets-transparent/studio_pics_sorted/selected_test/d435"
+    #   labels: "datasets-transparent/studio_pics_sorted/selected_test/d435"
+    # - images: "datasets-transparent/studio_pics_sorted/selected_val/d435"
+    #   labels: "datasets-transparent/studio_pics_sorted/selected_val/d435"
+
+  datasetsMatterport:
+    # - images: 'data/datasets/matterport3d/train/matterport_rgb/v1/scans'
+    #   labels: 'data/datasets/matterport3d/train/matterport_render_normal'
+
+  # Params
+  model: "drn" # Possible values: ['deeplab_xception', 'deeplab_resnet', 'drn']
+  numClasses: 3
+  batchSize: 32
+  imgHeight: 256
+  imgWidth: 256
+  os: 8
+  numWorkers: 4 # Num of workers used in the dataloader
+  pathWeightsFile: "checkpoints/outlines/drn-256p-contact-edges/checkpoints/checkpoint-epoch-0051.pth" # Path to the checkpoint to be loaded
+  resultsDir: "/jianyu-fast-vol/eval"
+

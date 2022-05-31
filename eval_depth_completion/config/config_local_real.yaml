@@ -22,7 +22,7 @@ resultsDir: '/media/jianyu/dataset/eval/cleargrasp/messy-table/real-noir'
 # Surface Normals Model
 normals:
   model: 'drn'  # Which model to use for inference. Possible values: ['unet', 'deeplab_resnet']
-  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/normal_noir/checkpoint-epoch-0015.pth'  # Path to the checkpoint to be loaded
+  pathWeightsFile: '/media/jianyu/dataset/eval/cleargrasp/model/normal_noir/checkpoint-epoch-0005.pth'  # Path to the checkpoint to be loaded
   inferenceHeight: 540
   inferenceWidth: 960
 
