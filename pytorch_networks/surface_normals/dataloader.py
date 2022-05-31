@@ -95,9 +95,6 @@ class SurfaceNormalsDataset(Dataset):
             label_path = self.img_label[index]
        
             img_normal_l = cv2.imread(label_path, cv2.IMREAD_UNCHANGED)
-            img_normal_l = np.ones(img_normal_l.shape)
-            img_normal_l[:,:,:2] = 1000.
-            img_normal_l[:,:,2] = 0
             #img_normal_l = None
             try:
                 img_normal_l = (img_normal_l.astype(float)) / 1000 - 1
