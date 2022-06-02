@@ -215,7 +215,8 @@ if __name__ == '__main__':
                     '1-300101-2']
 
     for i in range(len(rgb_file_list)):
-
+        if prefix[i] not in test_prefix:
+            continue
         # Run Depth Completion
         color_img = Image.open(rgb_file_list[i]).convert('RGB')
         color_img = color_img.resize([960,540], resample=Image.BILINEAR)
@@ -326,7 +327,7 @@ if __name__ == '__main__':
         grid_image = eval_utils.create_grid_image(depthcomplete.input_tensor, depthcomplete.surface_normals_tensor.float(), max_num_images_to_save=1)
         logger.add_image('Train', grid_image, i)
 
-        raw_normal = depthcomplete.surface_normals
+        raw_normal = depthcomplete.raw_normals
         
         np.save(os.path.join(normal_dir, data_dir + '.npy'), raw_normal)
         #print(raw_normal[:,0,0])

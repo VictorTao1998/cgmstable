@@ -66,7 +66,7 @@ train:
   batchSizeScannet: 0
   validationBatchSize: 2
   testBatchSize: 2
-  numEpochs: 2
+  numEpochs: 20
   imgHeight: 540
   imgWidth: 960
   numClasses: 3
@@ -93,7 +93,7 @@ train:
   saveImageInterval: 1 # Log output images to tensorboard every saveImageInterval epochs
   saveImageIntervalIter: 100 # Every N iterations, log output images to tensorboard
   testInterval: 1 # Run on test set every nTestInterval epochs. Keep at 0 to skip tests.
-  saveModelInterval: 5 # Save the model checkpoints every N epochs
+  saveModelInterval: 1 # Save the model checkpoints every N epochs
 
   # Optimizer Params
   optimAdam:

@@ -113,6 +113,7 @@ class ErrorMetric(object):
 
 
         depth_diff = depth_gt - depth_pred
+        #print(np.max(depth_diff), np.min(depth_diff))
         #disp_diff = np.clip(disp_diff, -self.disp_diff_threshold, self.disp_diff_threshold)
         depth_diff = np.clip(depth_diff, -self.depth_diff_threshold, self.depth_diff_threshold)
 

@@ -252,17 +252,19 @@ class InferenceNormals():
 
             outputs_norm = nn.functional.normalize(outputs, p=2, dim=1)
             surface_normals = outputs_norm.squeeze(0).cpu().numpy()
+            normal_pred = np.stack([surface_normals[0], surface_normals[2], -surface_normals[1]])
+            #print(normal_pred.shape)
 
             # Create RGB Viz of Normals
             surface_normals_rgb = self._normal_to_rgb(surface_normals.transpose((1, 2, 0)))
 
             # Rotate Surface Normals into depth2depth notation
             surface_normals_rotated = self._convert_normals_depth2depth_format(surface_normals)
-
+            #print(normal_pred.shape, surface_normals_rotated.shape)
             # # Create RGB Viz of Rotated Normals
             # surface_normals_rgb = self._normal_to_rgb(surface_normals_rotated.transpose((1, 2, 0)))
 
-        return surface_normals_rotated, surface_normals_rgb, outputs_norm.detach().cpu(), inputs.detach().cpu()
+        return normal_pred, surface_normals_rgb, outputs_norm.detach().cpu(), inputs.detach().cpu(), surface_normals
 
 
 class InferenceMasks():

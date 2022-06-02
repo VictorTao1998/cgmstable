@@ -213,6 +213,7 @@ class DepthToDepthCompletion(object):
         self.surface_normals = None
         self.surface_normals_rgb = None
         self.surface_normals_tensor = None
+        self.raw_normals = None
         self.occlusion_weight = None
         self.occlusion_weight_rgb = None
         self.outlines_rgb = None
@@ -652,13 +653,13 @@ class DepthToDepthCompletion(object):
         utils.save_uint16_png(self._PATH_TMP_INPUT_DEPTH, scaled_input_depth)
 
         # SURFACE NORMALS
-        self.surface_normals, self.surface_normals_rgb, self.surface_normals_tensor, self.input_tensor = self.inferenceNormals.runOnNumpyImage(input_image)
+        self.surface_normals, self.surface_normals_rgb, self.surface_normals_tensor, self.input_tensor, self.raw_normals = self.inferenceNormals.runOnNumpyImage(input_image)
         #print(self.surface_normals[:,0,0])
         # resize surface normals
-        self.surface_normals = self.surface_normals.transpose(1, 2, 0)
-        self.surface_normals = cv2.resize(self.surface_normals, (self.outputImgWidth, self.outputImgHeight),
-                                          interpolation=cv2.INTER_NEAREST)
-        self.surface_normals = self.surface_normals.transpose(2, 0, 1)
+        #self.surface_normals = self.surface_normals.transpose(1, 2, 0)
+        #self.surface_normals = cv2.resize(self.surface_normals, (self.outputImgWidth, self.outputImgHeight),
+                                          #interpolation=cv2.INTER_NEAREST)
+        #self.surface_normals = self.surface_normals.transpose(2, 0, 1)
         # resize surface normals rgb
         self.surface_normals_rgb = cv2.resize(self.surface_normals_rgb, (self.outputImgWidth, self.outputImgHeight),
                                               interpolation=cv2.INTER_NEAREST)
